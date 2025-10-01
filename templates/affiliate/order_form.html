@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="mb-3"><i class="fa-solid fa-cart-plus"></i> طلبية: {{ p.name }}</h4>
+        <div class="mb-3">السعر: <strong>{{ '%.0f'|format(p.price) }} دج</strong> | عمولتك: <strong>{{ '%.0f'|format(p.commission) }} دج</strong></div>
+        <form method="post">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">اسم الزبون</label>
+              <input name="customer_name" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">هاتف الزبون</label>
+              <input name="customer_phone" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">عنوان التوصيل</label>
+              <input name="customer_address" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-brand"><i class="fa-solid fa-paper-plane"></i> تأكيد الطلبية</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

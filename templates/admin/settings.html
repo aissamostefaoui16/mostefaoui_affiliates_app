@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block content %}
+<h4 class="mb-3"><i class="fa-solid fa-gear"></i> إعدادات الأدمن</h4>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="fw-bold mb-3">تغيير بيانات الدخول</h5>
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">الإيميل</label>
+            <input name="email" type="email" class="form-control" value="{{ admin_user.email if admin_user else '' }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">كلمة السر الجديدة (اختياري)</label>
+            <input name="password" type="password" class="form-control" placeholder="اتركها فارغة إن لا تريد التغيير">
+          </div>
+          <button class="btn btn-brand"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-12">
+    <div class="card mt-3">
+      <div class="card-header fw-bold"><i class="fa-solid fa-users-line"></i> قائمة المسوّقين</div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الحالة</th><th>تاريخ الإنشاء</th></tr></thead>
+          <tbody>
+            {% for u in affiliates %}
+            <tr>
+              <td>{{ u.id }}</td>
+              <td>{{ u.name }}</td>
+              <td>{{ u.email }}</td>
+              <td>{% if u.approved %}<span class="badge bg-success">مقبول</span>{% else %}<span class="badge bg-warning">بانتظار الموافقة</span>{% endif %}</td>
+              <td>{{ u.created_at[:19].replace('T',' ') }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted">لا يوجد مسوّقون</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

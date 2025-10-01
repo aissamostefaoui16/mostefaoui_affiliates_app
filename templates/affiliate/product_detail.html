@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <img src="{{ static_url(p.image_path) }}"
+           class="card-img-top" style="object-fit:cover;max-height:280px;">
+      <div class="card-body">
+        <h4 class="fw-bold">{{ p.name }}</h4>
+        <p class="text-muted">{{ p.description or '' }}</p>
+        <div class="mb-2">السعر: <strong>{{ '%.0f'|format(p.price) }} دج</strong></div>
+        <div class="mb-2">عمولتك: <strong>{{ '%.0f'|format(p.commission) }} دج</strong></div>
+        <div class="mb-3">سعر التوصيل: <strong>{{ '%.0f'|format(p.delivery_price) }} دج</strong></div>
+        <a class="btn btn-brand" href="{{ url_for('affiliate_order', pid=p.id) }}"><i class="fa-solid fa-cart-plus"></i> إنشاء طلبية</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="fw-bold mb-3"><i class="fa-regular fa-images"></i> الصور الإضافية</h5>
+        <div class="row g-2">
+          {% for im in images %}
+          <div class="col-4">
+            <img src="{{ static_url(im.image_path) }}" class="img-fluid rounded" style="object-fit:cover;height:110px;width:100%;">
+          </div>
+          {% else %}
+          <p class="text-muted">لا توجد صور إضافية</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

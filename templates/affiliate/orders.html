@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block content %}
+<h4 class="mb-3"><i class="fa-solid fa-receipt"></i> طلباتي</h4>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>#</th><th>التاريخ</th><th>المنتج</th><th>العمولة</th><th>السعر</th><th>الزبون</th><th>الهاتف</th><th>العنوان</th><th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in rows %}
+        <tr>
+          <td>{{ o.id }}</td>
+          <td>{{ o.created_at[:19].replace('T',' ') }}</td>
+          <td class="d-flex align-items-center gap-2">
+            <img src="{{ static_url(o.image_path) }}" width="48" height="32" style="object-fit:cover;border-radius:.25rem;">
+            <span>{{ o.product_name }}</span>
+          </td>
+          <td>{{ '%.0f'|format(o.commission) }} دج</td>
+          <td>{{ '%.0f'|format(o.price) }} دج</td>
+          <td>{{ o.customer_name }}</td>
+          <td>{{ o.customer_phone }}</td>
+          <td>{{ o.customer_address }}</td>
+          <td>
+            {% if o.status == 'pending' %}<span class="badge bg-warning">في الانتظار</span>
+            {% elif o.status == 'delivered' %}<span class="badge bg-success">تم التوصيل</span>
+            {% else %}<span class="badge bg-danger">أُلغيت</span>{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center text-muted">لا توجد طلبيات بعد</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

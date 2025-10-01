@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+{% block content %}
+<h4 class="mb-3"><i class="fa-solid fa-boxes-stacked"></i> إدارة المنتجات</h4>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="post" action="{{ url_for('admin_products_add') }}" class="row g-3" enctype="multipart/form-data">
+      <div class="col-md-4">
+        <label class="form-label">اسم المنتج</label>
+        <input name="name" class="form-control" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">السعر (دج)</label>
+        <input name="price" type="number" step="1" min="0" class="form-control" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">سعر العمولة (دج)</label>
+        <input name="commission" type="number" step="1" min="0" class="form-control" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">سعر التوصيل (دج)</label>
+        <input name="delivery_price" type="number" step="1" min="0" class="form-control" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">الصورة الرئيسية</label>
+        <input name="image" type="file" accept="image/*" class="form-control">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">صور إضافية (يمكن اختيار عدة صور)</label>
+        <input name="images[]" type="file" accept="image/*" class="form-control" multiple>
+      </div>
+      <div class="col-12">
+        <label class="form-label">الوصف</label>
+        <textarea name="description" class="form-control" rows="2"></textarea>
+      </div>
+      <div class="col-12">
+        <button class="btn btn-brand"><i class="fa-solid fa-plus"></i> إضافة المنتج</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-striped mb-0">
+      <thead><tr>
+        <th>#</th><th>الاسم</th><th>السعر</th><th>العمولة</th><th>التوصيل</th><th>صورة</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for p in products %}
+        <tr>
+          <td>{{ p.id }}</td>
+          <td>{{ p.name }}</td>
+          <td>{{ '%.0f'|format(p.price) }}</td>
+          <td>{{ '%.0f'|format(p.commission) }}</td>
+          <td>{{ '%.0f'|format(p.delivery_price) }}</td>
+          <td><img src="{{ static_url(p.image_path) }}" width="60" style="object-fit:cover;border-radius:.25rem;"></td>
+          <td>
+            <form method="post" action="{{ url_for('admin_products_delete', pid=p.id) }}" onsubmit="return confirm('حذف المنتج؟');">
+              <button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i> حذف</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted">لا يوجد منتجات</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
