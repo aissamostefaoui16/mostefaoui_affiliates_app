@@ -6,17 +6,32 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
+# --- Postgres ---
 import psycopg2
 import psycopg2.extras
 
-APP_NAME = "Mostefaoui DZShop Affiliates (PG)"
+# --- Cloudinary ---
+import cloudinary
+import cloudinary.uploader
+
+APP_NAME = "Mostefaoui DZShop Affiliates (PG + Cloudinary)"
 WITHDRAW_MIN = 5000.0  # DZD
+
+# مجلد محلي يُستخدم فقط عند عدم توفر Cloudinary (للتجربة محليًا)
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'}
 
-DATABASE_URL = os.environ.get("DATABASE_URL")  # من Render → Postgres → External URL
+# بيئات
+DATABASE_URL = os.environ.get("DATABASE_URL")  # من Render → Postgres → (Internal أو External URL)
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set. Add it in Render → Environment.")
+
+# Cloudinary: مفعّل إذا المتغير موجود
+CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL", "").strip()
+USE_CLOUDINARY = bool(CLOUDINARY_URL)
+if USE_CLOUDINARY:
+    # يكفي وضع CLOUDINARY_URL، لكن نؤكّد بالضبط
+    cloudinary.config(cloudinary_url=CLOUDINARY_URL)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-this-secret')
@@ -28,23 +43,49 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
 
 def save_file(fs):
-    if fs and allowed_file(fs.filename):
-        filename = secure_filename(fs.filename)
-        base, ext = os.path.splitext(filename)
-        uniq = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
-        filename = f"{base}_{uniq}{ext}"
-        path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        fs.save(path)
-        return path.replace("\\", "/")
-    return None
+    """
+    تحفظ الصورة في Cloudinary إن كان مفعّل،
+    وإلا تحفظها محليًا في static/uploads (للاستخدام المحلي فقط).
+    ترجع مسار/رابط صالح للتخزين في قاعدة البيانات.
+    """
+    if not fs or not allowed_file(fs.filename):
+        return None
+
+    if USE_CLOUDINARY:
+        # نرفع الصورة إلى مجلد products داخل حسابك
+        # يمكن إضافة تحكمات لاحقة: public_id، tags، الخ.
+        result = cloudinary.uploader.upload(
+            fs,
+            folder="dzshop/products",           # مجلد من اختيارك
+            resource_type="image",              # نوع الملف
+            use_filename=True, unique_filename=True
+            # يمكنك إضافة تحويلات افتراضية هنا إن حبيت
+            # transformation=[{"quality": "auto", "fetch_format": "auto"}]
+        )
+        # نخزن الرابط الآمن (HTTPS). هذا يبقى دائمًا.
+        return result.get('secure_url')  # مثال: https://res.cloudinary.com/<cloud>/image/upload/v.../file.png
+
+    # حفظ محلي (للاستعمال خارج Render أو عند غياب CLOUDINARY_URL)
+    filename = secure_filename(fs.filename)
+    base, ext = os.path.splitext(filename)
+    uniq = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
+    filename = f"{base}_{uniq}{ext}"
+    path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    fs.save(path)
+    return path.replace("\\", "/")  # توحيد الفواصل
 
 @app.context_processor
 def inject_helpers():
     def static_url(path):
+        # صورة افتراضية إذا لا يوجد مسار
         if not path or path.strip() == "":
             return url_for('static', filename='img/placeholder.svg')
+        # لو المسار محلي محفوظ "static/..." نحوله إلى url_for
         if path.startswith('static/'):
             return url_for('static', filename=path.split('static/', 1)[1])
+        # لو رابط خارجي (Cloudinary)، نعيده كما هو
+        if path.startswith('http://') or path.startswith('https://'):
+            return path
         return path
     return dict(static_url=static_url)
 
@@ -62,7 +103,7 @@ def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # جداول Postgres (أنواع متوافقة)
+    # جداول
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users(
             id SERIAL PRIMARY KEY,
@@ -135,12 +176,14 @@ def init_db():
     if pcount == 0:
         cur.execute("""INSERT INTO products(name,description,price,commission,delivery_price,image_path,created_at)
                        VALUES(%s,%s,%s,%s,%s,%s,%s)""",
-                    ('مثال: خلاط مطبخ', 'وصف موجز للمنتج.', 12990, 800, 700, 'static/img/placeholder.svg', datetime.now(timezone.utc).isoformat()))
+                    ('مثال: خلاط مطبخ', 'وصف موجز للمنتج.', 12990, 800, 700,
+                     'static/img/placeholder.svg', datetime.now(timezone.utc).isoformat()))
         conn.commit()
 
     cur.close()
     conn.close()
 
+# نضمن التهيئة عند تحميل التطبيق مع Gunicorn (Render)
 init_db()
 
 # -------------- Auth helpers --------------
@@ -413,12 +456,14 @@ def admin_products_add():
     extra_images = request.files.getlist('images[]')
     if not name or price <= 0 or commission < 0 or delivery_price < 0:
         flash('تحقق من الحقول', 'danger'); return redirect(url_for('admin_products'))
+
     main_path = save_file(main_image) or 'static/img/placeholder.svg'
     conn = get_db(); cur = conn.cursor()
     cur.execute("""INSERT INTO products(name,description,price,commission,delivery_price,image_path,created_at)
                    VALUES(%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
                 (name, description, price, commission, delivery_price, main_path, datetime.now(timezone.utc).isoformat()))
     pid = cur.fetchone()['id']
+
     for f in extra_images:
         p = save_file(f)
         if p:
@@ -476,6 +521,4 @@ def admin_settings():
     conn.close()
     return render_template('admin/settings.html', admin_user=admin_user, affiliates=affiliates, app_name=APP_NAME)
 
-# لا تستعمل app.run هنا؛ Gunicorn سيشغّل app مباشرة
-# Start Command في Render:
-# gunicorn app_pg:app --workers 3 --timeout 120 --bind 0.0.0.0:$PORT
+# ملاحظة: لا نستخدم app.run هنا؛ Gunicorn سيشغّل app مباشرة عبر Start Command
