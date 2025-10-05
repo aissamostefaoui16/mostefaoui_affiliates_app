@@ -3,26 +3,50 @@
 <div class="row g-3">
   <div class="col-md-6">
     <div class="card">
-      <img src="{{ static_url(p.image_path) }}"
-           class="card-img-top" style="object-fit:cover;max-height:280px;">
+      <img src="{{ static_url(p.image_path) }}" class="card-img-top" style="object-fit:cover;max-height:280px;">
       <div class="card-body">
-        <h4 class="fw-bold">{{ p.name }}</h4>
-        <p class="text-muted">{{ p.description or '' }}</p>
+        <h4 class="fw-bold d-flex align-items-center justify-content-between">
+          <span id="prodName">{{ p.name }}</span>
+          <button class="btn btn-sm btn-outline-secondary" onclick="copyText('#prodName')" title="نسخ الاسم">
+            <i class="fa-regular fa-copy"></i>
+          </button>
+        </h4>
+        <p class="text-muted d-flex justify-content-between">
+          <span id="prodDesc">{{ p.description or '' }}</span>
+          <button class="btn btn-sm btn-outline-secondary" onclick="copyText('#prodDesc')" title="نسخ الوصف">
+            <i class="fa-regular fa-copy"></i>
+          </button>
+        </p>
+
         <div class="mb-2">السعر: <strong>{{ '%.0f'|format(p.price) }} دج</strong></div>
         <div class="mb-2">عمولتك: <strong>{{ '%.0f'|format(p.commission) }} دج</strong></div>
         <div class="mb-3">سعر التوصيل: <strong>{{ '%.0f'|format(p.delivery_price) }} دج</strong></div>
-        <a class="btn btn-brand" href="{{ url_for('affiliate_order', pid=p.id) }}"><i class="fa-solid fa-cart-plus"></i> إنشاء طلبية</a>
+
+        <div class="d-flex gap-2 flex-wrap">
+          <a class="btn btn-success" href="{{ dl_url(p.image_path) }}" download>
+            <i class="fa-solid fa-download"></i> تنزيل الصورة الرئيسية
+          </a>
+          <a class="btn btn-brand" href="{{ url_for('affiliate_order', pid=p.id) }}">
+            <i class="fa-solid fa-cart-plus"></i> إنشاء طلبية
+          </a>
+        </div>
       </div>
     </div>
   </div>
+
   <div class="col-md-6">
     <div class="card">
       <div class="card-body">
         <h5 class="fw-bold mb-3"><i class="fa-regular fa-images"></i> الصور الإضافية</h5>
         <div class="row g-2">
           {% for im in images %}
-          <div class="col-4">
-            <img src="{{ static_url(im.image_path) }}" class="img-fluid rounded" style="object-fit:cover;height:110px;width:100%;">
+          <div class="col-6">
+            <div class="border rounded p-1 h-100">
+              <img src="{{ static_url(im.image_path) }}" class="img-fluid rounded mb-2" style="object-fit:cover;height:140px;width:100%;">
+              <a class="btn btn-sm btn-outline-success w-100" href="{{ dl_url(im.image_path) }}" download>
+                <i class="fa-solid fa-download"></i> تنزيل
+              </a>
+            </div>
           </div>
           {% else %}
           <p class="text-muted">لا توجد صور إضافية</p>

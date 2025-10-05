@@ -1,47 +1,61 @@
 {% extends "layout.html" %}
 {% block content %}
-<h4 class="mb-3"><i class="fa-solid fa-gear"></i> إعدادات الأدمن</h4>
+<h4 class="mb-3"><i class="fa-solid fa-gear"></i> إعدادات النظام</h4>
 
 <div class="row g-3">
-  <div class="col-md-6">
-    <div class="card">
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header fw-bold">بيانات الأدمن</div>
       <div class="card-body">
-        <h5 class="fw-bold mb-3">تغيير بيانات الدخول</h5>
-        <form method="post">
-          <div class="mb-3">
+        <form method="post" class="row g-3">
+          <div class="col-12">
             <label class="form-label">الإيميل</label>
-            <input name="email" type="email" class="form-control" value="{{ admin_user.email if admin_user else '' }}" required>
+            <input name="email" class="form-control" value="{{ admin_user.email if admin_user else '' }}" required>
           </div>
-          <div class="mb-3">
-            <label class="form-label">كلمة السر الجديدة (اختياري)</label>
-            <input name="password" type="password" class="form-control" placeholder="اتركها فارغة إن لا تريد التغيير">
+          <div class="col-12">
+            <label class="form-label">كلمة السر (اتركها فارغة للإبقاء عليها)</label>
+            <input name="password" type="password" class="form-control" minlength="6">
           </div>
-          <button class="btn btn-brand"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
+          <div class="col-12">
+            <button class="btn btn-brand"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
+          </div>
         </form>
       </div>
     </div>
   </div>
 
-  <div class="col-md-12">
-    <div class="card mt-3">
-      <div class="card-header fw-bold"><i class="fa-solid fa-users-line"></i> قائمة المسوّقين</div>
-      <div class="table-responsive">
-        <table class="table mb-0">
-          <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الحالة</th><th>تاريخ الإنشاء</th></tr></thead>
-          <tbody>
-            {% for u in affiliates %}
-            <tr>
-              <td>{{ u.id }}</td>
-              <td>{{ u.name }}</td>
-              <td>{{ u.email }}</td>
-              <td>{% if u.approved %}<span class="badge bg-success">مقبول</span>{% else %}<span class="badge bg-warning">بانتظار الموافقة</span>{% endif %}</td>
-              <td>{{ u.created_at[:19].replace('T',' ') }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="5" class="text-center text-muted">لا يوجد مسوّقون</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header fw-bold">المسوّقون</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped align-middle">
+            <thead>
+              <tr>
+                <th>#</th><th>الاسم</th><th>الإيميل</th><th>الحالة</th><th style="min-width:220px;">تعيين كلمة سر جديدة</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in affiliates %}
+              <tr>
+                <td>{{ a.id }}</td>
+                <td>{{ a.name }}</td>
+                <td>{{ a.email }}</td>
+                <td>{% if a.approved %}<span class="badge bg-success">مقبول</span>{% else %}<span class="badge bg-warning">بانتظار</span>{% endif %}</td>
+                <td>
+                  <form method="post" action="{{ url_for('admin_affiliate_reset_password', uid=a.id) }}" class="d-flex gap-2">
+                    <input name="new_password" type="password" class="form-control form-control-sm" placeholder="كلمة سر جديدة (≥6)" minlength="6" required>
+                    <button class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-key"></i> تعيين</button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="5" class="text-center text-muted">لا يوجد مسوّقون</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="text-muted small mb-0">يمكنك استخدام صفحة <a href="{{ url_for('admin_affiliates') }}">المسوّقين</a> للموافقة/التعطيل.</p>
       </div>
     </div>
   </div>

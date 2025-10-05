@@ -1,52 +1,92 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ app_name }}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <style>
+    body { background:#f8f9fa; }
+    .navbar-brand { font-weight:bold; }
+    .btn-brand { background:#0d6efd; color:#fff; }
+    .btn-brand:hover { background:#0b5ed7; color:#fff; }
+  </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg bg-white">
-  <div class="container">
-    <a class="navbar-brand brand" href="#"><i class="fa-solid fa-store"></i> {{ app_name }}</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">{{ app_name }}</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div id="nav" class="collapse navbar-collapse">
-      <div class="ms-auto d-flex gap-2">
-        {% if session.get('role') == 'affiliate' %}
-          <a class="btn btn-outline-secondary" href="{{ url_for('affiliate_products') }}"><i class="fa-solid fa-box"></i> المنتجات</a>
-          <a class="btn btn-outline-secondary" href="{{ url_for('affiliate_orders') }}"><i class="fa-solid fa-receipt"></i> طلباتي</a>
-          <a class="btn btn-outline-secondary" href="{{ url_for('affiliate_commissions') }}"><i class="fa-solid fa-coins"></i> عمولاتي</a>
-        {% elif session.get('role') == 'admin' %}
-          <a class="btn btn-outline-secondary" href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-gauge"></i> لوحة الإدارة</a>
-          <a class="btn btn-outline-secondary" href="{{ url_for('admin_products') }}"><i class="fa-solid fa-boxes-stacked"></i> إدارة المنتجات</a>
-          <a class="btn btn-outline-secondary" href="{{ url_for('admin_affiliates') }}"><i class="fa-solid fa-users"></i> المسوّقون</a>
-          <a class="btn btn-outline-secondary" href="{{ url_for('admin_settings') }}"><i class="fa-solid fa-gear"></i> الإعدادات</a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        {% if session.get('role') == 'admin' %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-gauge"></i> لوحة التحكم</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_products') }}"><i class="fa-solid fa-box"></i> المنتجات</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_affiliates') }}"><i class="fa-solid fa-users"></i> المسوقون</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_settings') }}"><i class="fa-solid fa-gear"></i> الإعدادات</a></li>
+        {% elif session.get('role') == 'affiliate' %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('affiliate_products') }}"><i class="fa-solid fa-store"></i> المنتجات</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('affiliate_orders') }}"><i class="fa-solid fa-list"></i> طلباتي</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('affiliate_commissions') }}"><i class="fa-solid fa-money-bill"></i> عمولاتي</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('affiliate_settings') }}"><i class="fa-solid fa-user-gear"></i> إعدادات</a></li>
         {% endif %}
+      </ul>
+      <ul class="navbar-nav">
         {% if session.get('user_id') %}
-          <a class="btn btn-danger" href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> خروج</a>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> خروج</a></li>
+        {% else %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}"><i class="fa-solid fa-right-to-bracket"></i> دخول</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}"><i class="fa-solid fa-user-plus"></i> تسجيل</a></li>
         {% endif %}
-      </div>
+      </ul>
     </div>
   </div>
 </nav>
 
-<div class="container py-3">
+<div class="container">
+
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-      {% for cat, msg in messages %}
-        <div class="alert alert-{{cat}}">{{ msg }}</div>
-      {% endfor %}
+      <div class="mb-3">
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{cat}} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      </div>
     {% endif %}
   {% endwith %}
 
   {% block content %}{% endblock %}
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<footer class="bg-dark text-white mt-5 p-3 text-center">
+  <small>&copy; 2025 {{ app_name }}</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function copyText(selector) {
+  try {
+    const el = document.querySelector(selector);
+    let text = el ? (el.innerText || el.textContent || '') : '';
+    navigator.clipboard.writeText(text).then(() => {
+      const m = document.createElement('div');
+      m.textContent = '✓ تم النسخ';
+      m.style.position='fixed'; m.style.bottom='16px'; m.style.left='50%';
+      m.style.transform='translateX(-50%)'; m.style.background='#16a34a';
+      m.style.color='#fff'; m.style.padding='6px 10px'; m.style.borderRadius='6px';
+      m.style.zIndex='9999'; m.style.fontSize='14px';
+      document.body.appendChild(m); setTimeout(()=>m.remove(), 1200);
+    });
+  } catch(e) { console.error(e); }
+}
+</script>
+
 </body>
 </html>

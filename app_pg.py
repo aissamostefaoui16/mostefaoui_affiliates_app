@@ -17,20 +17,16 @@ import cloudinary.uploader
 APP_NAME = "Mostefaoui DZShop Affiliates (PG + Cloudinary)"
 WITHDRAW_MIN = 5000.0  # DZD
 
-# مجلد محلي يُستخدم فقط عند عدم توفر Cloudinary (للتجربة محليًا)
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'}
 
-# بيئات
-DATABASE_URL = os.environ.get("DATABASE_URL")  # من Render → Postgres → (Internal أو External URL)
+DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set. Add it in Render → Environment.")
 
-# Cloudinary: مفعّل إذا المتغير موجود
 CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL", "").strip()
 USE_CLOUDINARY = bool(CLOUDINARY_URL)
 if USE_CLOUDINARY:
-    # يكفي وضع CLOUDINARY_URL، لكن نؤكّد بالضبط
     cloudinary.config(cloudinary_url=CLOUDINARY_URL)
 
 app = Flask(__name__)
@@ -43,51 +39,53 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
 
 def save_file(fs):
-    """
-    تحفظ الصورة في Cloudinary إن كان مفعّل،
-    وإلا تحفظها محليًا في static/uploads (للاستخدام المحلي فقط).
-    ترجع مسار/رابط صالح للتخزين في قاعدة البيانات.
-    """
     if not fs or not allowed_file(fs.filename):
         return None
-
     if USE_CLOUDINARY:
-        # نرفع الصورة إلى مجلد products داخل حسابك
-        # يمكن إضافة تحكمات لاحقة: public_id، tags، الخ.
         result = cloudinary.uploader.upload(
             fs,
-            folder="dzshop/products",           # مجلد من اختيارك
-            resource_type="image",              # نوع الملف
-            use_filename=True, unique_filename=True
-            # يمكنك إضافة تحويلات افتراضية هنا إن حبيت
-            # transformation=[{"quality": "auto", "fetch_format": "auto"}]
+            folder="dzshop/products",
+            resource_type="image",
+            use_filename=True,
+            unique_filename=True
         )
-        # نخزن الرابط الآمن (HTTPS). هذا يبقى دائمًا.
-        return result.get('secure_url')  # مثال: https://res.cloudinary.com/<cloud>/image/upload/v.../file.png
-
-    # حفظ محلي (للاستعمال خارج Render أو عند غياب CLOUDINARY_URL)
+        return result.get('secure_url')
     filename = secure_filename(fs.filename)
     base, ext = os.path.splitext(filename)
     uniq = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
     filename = f"{base}_{uniq}{ext}"
     path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     fs.save(path)
-    return path.replace("\\", "/")  # توحيد الفواصل
+    return path.replace("\\", "/")
+
+def make_dl_url(url_or_path):
+    """
+    يحوّل رابط Cloudinary إلى رابط تنزيل مباشر بإضافة fl_attachment بعد /upload/
+    ولو كان مسار static محلي يرجّع نفس المسار (المتصفح سيحمّل عند وسم anchor مع download).
+    """
+    if not url_or_path:
+        return url_for('static', filename='img/placeholder.svg')
+    s = url_or_path.strip()
+    if s.startswith('http://') or s.startswith('https://'):
+        # Cloudinary pattern: .../upload/... → .../upload/fl_attachment/...
+        if '/upload/' in s:
+            return s.replace('/upload/', '/upload/fl_attachment/', 1)
+        return s  # روابط خارجية أخرى كما هي
+    if s.startswith('static/'):
+        return url_for('static', filename=s.split('static/', 1)[1])
+    return s
 
 @app.context_processor
 def inject_helpers():
     def static_url(path):
-        # صورة افتراضية إذا لا يوجد مسار
         if not path or path.strip() == "":
             return url_for('static', filename='img/placeholder.svg')
-        # لو المسار محلي محفوظ "static/..." نحوله إلى url_for
         if path.startswith('static/'):
             return url_for('static', filename=path.split('static/', 1)[1])
-        # لو رابط خارجي (Cloudinary)، نعيده كما هو
         if path.startswith('http://') or path.startswith('https://'):
             return path
         return path
-    return dict(static_url=static_url)
+    return dict(static_url=static_url, dl_url=make_dl_url)
 
 # -------------- DB (Postgres) --------------
 def get_db():
@@ -103,7 +101,6 @@ def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # جداول
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users(
             id SERIAL PRIMARY KEY,
@@ -160,7 +157,6 @@ def init_db():
     """)
     conn.commit()
 
-    # Seed admin
     cur.execute("SELECT id FROM users WHERE role='admin' LIMIT 1")
     admin = cur.fetchone()
     if not admin:
@@ -170,7 +166,6 @@ def init_db():
                     ('Admin', 'admin@local', generate_password_hash(admin_pwd), 'admin', 1, datetime.now(timezone.utc).isoformat()))
         conn.commit()
 
-    # Seed sample product
     cur.execute("SELECT COUNT(*) AS n FROM products")
     pcount = cur.fetchone()['n']
     if pcount == 0:
@@ -183,7 +178,6 @@ def init_db():
     cur.close()
     conn.close()
 
-# نضمن التهيئة عند تحميل التطبيق مع Gunicorn (Render)
 init_db()
 
 # -------------- Auth helpers --------------
@@ -326,6 +320,35 @@ def affiliate_orders():
     cur.close(); conn.close()
     return render_template('affiliate/orders.html', rows=rows, app_name=APP_NAME)
 
+@app.route('/affiliate/settings', methods=['GET','POST'])
+@login_required(role='affiliate')
+def affiliate_settings():
+    # تغيير كلمة سر المسوّق
+    if request.method == 'POST':
+        current = request.form.get('current_password','')
+        new1 = request.form.get('new_password','')
+        new2 = request.form.get('confirm_password','')
+
+        if not new1 or len(new1) < 6 or new1 != new2:
+            flash('تحقق من كلمة السر الجديدة (6 أحرف على الأقل ومطابقة للتأكيد).', 'danger')
+            return redirect(url_for('affiliate_settings'))
+
+        conn = get_db()
+        cur = pg_exec(conn, "SELECT * FROM users WHERE id=%s", (session['user_id'],))
+        u = cur.fetchone()
+        if not u or not check_password_hash(u['password_hash'], current):
+            cur.close(); conn.close()
+            flash('كلمة السر الحالية غير صحيحة.', 'danger')
+            return redirect(url_for('affiliate_settings'))
+
+        pg_exec(conn, "UPDATE users SET password_hash=%s WHERE id=%s",
+                (generate_password_hash(new1), session['user_id']))
+        conn.commit(); conn.close()
+        flash('تم تغيير كلمة السر بنجاح.', 'success')
+        return redirect(url_for('affiliate_settings'))
+
+    return render_template('affiliate/settings.html', app_name=APP_NAME)
+
 def calc_affiliate_balance(affiliate_id):
     conn = get_db()
     cur = pg_exec(conn, """
@@ -435,6 +458,20 @@ def admin_affiliate_set(uid):
     flash('تم تحديث حالة المسوّق', 'success')
     return redirect(url_for('admin_affiliates'))
 
+@app.route('/admin/affiliates/<int:uid>/reset_password', methods=['POST'])
+@admin_required
+def admin_affiliate_reset_password(uid):
+    new_pass = request.form.get('new_password','').strip()
+    if not new_pass or len(new_pass) < 6:
+        flash('كلمة السر يجب أن تكون 6 أحرف على الأقل.', 'danger')
+        return redirect(url_for('admin_settings'))
+    conn = get_db()
+    pg_exec(conn, "UPDATE users SET password_hash=%s WHERE id=%s AND role='affiliate'",
+            (generate_password_hash(new_pass), uid))
+    conn.commit(); conn.close()
+    flash('تم تعيين كلمة سر جديدة للمسوّق.', 'success')
+    return redirect(url_for('admin_settings'))
+
 @app.route('/admin/products')
 @admin_required
 def admin_products():
@@ -514,6 +551,7 @@ def admin_settings():
             flash('تم حفظ الإعدادات', 'success')
         else:
             flash('الإيميل مطلوب', 'danger')
+
     cur = pg_exec(conn, "SELECT id,name,email,approved,created_at FROM users WHERE role='affiliate' ORDER BY id DESC")
     affiliates = cur.fetchall()
     cur = pg_exec(conn, "SELECT id,name,email FROM users WHERE role='admin' LIMIT 1")
@@ -521,4 +559,4 @@ def admin_settings():
     conn.close()
     return render_template('admin/settings.html', admin_user=admin_user, affiliates=affiliates, app_name=APP_NAME)
 
-# ملاحظة: لا نستخدم app.run هنا؛ Gunicorn سيشغّل app مباشرة عبر Start Command
+# لا app.run؛ Gunicorn سيشغل app عبر Start Command
