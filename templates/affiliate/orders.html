@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block content %}
+<h5 class="mb-3"><i class="fa-solid fa-box me-2"></i> طلباتي</h5>
+<div class="table-responsive">
+  <table class="table align-middle">
+    <thead><tr>
+      <th>المنتج</th><th>الزبون</th><th>الهاتف</th><th>الحالة</th><th class="text-end">عمولتي</th>
+    </tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="d-flex align-items-center gap-2">
+          <img src="{{ static_url(r.image_path) }}" width="44" class="rounded">
+          <div>
+            <div class="small fw-semibold">{{ r.product_name }}</div>
+            <div class="text-muted small">{{ r.price|int }} دج</div>
+          </div>
+        </td>
+        <td>{{ r.customer_name }}</td>
+        <td class="small">{{ r.customer_phone }}</td>
+        <td>
+          {% if r.status=='pending' %}<span class="badge text-bg-warning">قيد التوصيل</span>{% endif %}
+          {% if r.status=='delivered' %}<span class="badge text-bg-success">مؤكدة</span>{% endif %}
+          {% if r.status=='canceled' %}<span class="badge text-bg-secondary">ملغاة</span>{% endif %}
+        </td>
+        <td class="text-end">{{ r.commission|int }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-center text-muted">لا توجد طلبيات.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

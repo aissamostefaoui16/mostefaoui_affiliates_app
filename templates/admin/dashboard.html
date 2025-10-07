@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+{% block content %}
+<h4 class="mb-3"><i class="fa-solid fa-gauge"></i> لوحة الإدارة</h4>
+<div class="row g-3">
+  <div class="col-6 col-md-3"><div class="card stat"><div class="card-body text-center">
+    <div class="num">{{ stats.orders_total }}</div><div class="lbl">إجمالي الطلبيات</div>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card stat"><div class="card-body text-center">
+    <div class="num">{{ stats.pending }}</div><div class="lbl">قيد الانتظار</div>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card stat"><div class="card-body text-center">
+    <div class="num text-success">{{ stats.delivered }}</div><div class="lbl">تم التوصيل</div>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card stat"><div class="card-body text-center">
+    <div class="num text-danger">{{ stats.canceled }}</div><div class="lbl">أُلغيت</div>
+  </div></div></div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header fw-bold"><i class="fa-solid fa-clock-rotate-left"></i> آخر الطلبيات</div>
+  <div class="table-responsive">
+    <table class="table table-striped mb-0">
+      <thead><tr>
+        <th>#</th><th>التاريخ</th><th>المنتج</th><th>المسوّق</th><th>الزبون</th><th>الهاتف</th><th>العنوان</th><th>الحالة</th><th>عمولة</th><th>سعر</th><th>إجراء</th>
+      </tr></thead>
+      <tbody>
+        {% for o in latest_orders %}
+        <tr>
+          <td>{{ o.id }}</td>
+          <td>{{ o.created_at[:19].replace('T',' ') }}</td>
+          <td class="d-flex align-items-center gap-2">
+            <img src="{{ static_url(o.image_path) }}" width="48" height="32" style="object-fit:cover;border-radius:.25rem;">
+            <span>{{ o.product_name }}</span>
+          </td>
+          <td>{{ o.affiliate_name }}</td>
+          <td>{{ o.customer_name }}</td>
+          <td>{{ o.customer_phone }}</td>
+          <td>{{ o.customer_address }}</td>
+          <td>{% if o.status=='pending' %}<span class="badge bg-warning">انتظار</span>{% elif o.status=='delivered' %}<span class="badge bg-success">تم</span>{% else %}<span class="badge bg-danger">أُلغيت</span>{% endif %}</td>
+          <td>{{ '%.0f'|format(o.commission) }} دج</td>
+          <td>{{ '%.0f'|format(o.price) }} دج</td>
+          <td>
+            <form method="post" action="{{ url_for('admin_update_order_status', oid=o.id) }}" class="d-flex gap-1">
+              <select name="status" class="form-select form-select-sm">
+                <option value="pending" {% if o.status=='pending' %}selected{% endif %}>انتظار</option>
+                <option value="delivered" {% if o.status=='delivered' %}selected{% endif %}>تم التوصيل</option>
+                <option value="canceled" {% if o.status=='canceled' %}selected{% endif %}>أُلغيت</option>
+              </select>
+              <button class="btn btn-sm btn-brand"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="11" class="text-center text-muted">لا يوجد بيانات</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header fw-bold"><i class="fa-solid fa-wallet"></i> طلبات السحب (بانتظار المعالجة)</div>
+  <div class="table-responsive">
+    <table class="table table-striped mb-0">
+      <thead><tr><th>#</th><th>التاريخ</th><th>المسوّق</th><th>الإيميل</th><th>المبلغ</th><th>الطريقة</th><th>البيانات</th><th>إجراء</th></tr></thead>
+      <tbody>
+        {% for w in pending_withdraws %}
+        <tr>
+          <td>{{ w.id }}</td>
+          <td>{{ w.created_at[:19].replace('T',' ') }}</td>
+          <td>{{ w.affiliate_name }}</td>
+          <td>{{ w.email }}</td>
+          <td>{{ '%.0f'|format(w.amount) }} دج</td>
+          <td>{{ 'CCP' if w.method=='ccp' else 'RIB' }}</td>
+          <td>{{ w.details }}</td>
+          <td class="d-flex gap-2">
+            <form method="post" action="{{ url_for('admin_withdraw_set', wid=w.id) }}">
+              <input type="hidden" name="status" value="approved">
+              <button class="btn btn-sm btn-success"><i class="fa-solid fa-check"></i> قبول</button>
+            </form>
+            <form method="post" action="{{ url_for('admin_withdraw_set', wid=w.id) }}">
+              <input type="hidden" name="status" value="rejected">
+              <button class="btn btn-sm btn-danger"><i class="fa-solid fa-xmark"></i> رفض</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted">لا يوجد طلبات</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

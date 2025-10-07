@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h5 class="mb-0"><i class="fa-solid fa-store me-2"></i> المنتجات</h5>
+  <div>
+    <div class="dropdown">
+      <button class="btn btn-outline-dark btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="fa-solid fa-layer-group me-1"></i> التصنيفات
+      </button>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item {% if not active_cat %}active{% endif %}" href="{{ url_for('affiliate_products') }}">الكل</a></li>
+        {% for c in categories %}
+          <li><a class="dropdown-item {% if active_cat==c.id %}active{% endif %}" href="{{ url_for('affiliate_products', cat=c.id) }}">{{ c.name }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for p in products %}
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="card h-100 product-card">
+        <img src="{{ static_url(p.image_path) }}" class="card-img-top product-thumb" alt="{{ p.name }}">
+        <div class="card-body">
+          <h6 class="product-title text-truncate" title="{{ p.name }}">{{ p.name }}</h6>
+          <div class="small text-muted mb-1">{{ p.category_name or '—' }}</div>
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="price">{{ p.price|int }} دج</span>
+            <span class="badge bg-brand">عمولة {{ p.commission|int }}</span>
+          </div>
+        </div>
+        <div class="card-footer bg-white border-0">
+          <a class="btn btn-brand w-100" href="{{ url_for('affiliate_product_detail', pid=p.id) }}">
+            <i class="fa-regular fa-eye me-1"></i> عرض المنتج
+          </a>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="col-12"><div class="alert alert-light">لا توجد منتجات.</div></div>
+  {% endfor %}
+</div>
+{% endblock %}
