@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
+<<<<<<< HEAD
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0"><i class="fa-solid fa-boxes-stacked me-2"></i> المنتجات</h5>
   <a class="btn btn-brand" href="{{ url_for('admin_product_new') }}"><i class="fa-solid fa-plus"></i> منتج جديد</a>
@@ -38,5 +39,125 @@
       {% endfor %}
     </tbody>
   </table>
+=======
+<h5 class="mb-3"><i class="fa-solid fa-box me-2"></i> المنتجات & التصنيفات</h5>
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-bold">إضافة تصنيف</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin_category_add') }}" class="d-flex gap-2">
+          <input name="name" class="form-control" placeholder="اسم التصنيف" required>
+          <button class="btn btn-brand"><i class="fa-solid fa-plus"></i> إضافة</button>
+        </form>
+        <hr>
+        <div class="small text-muted">التصنيفات الحالية:</div>
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          {% for c in categories %}
+            <span class="badge bg-secondary">{{ c.name }}</span>
+          {% else %}
+            <span class="text-muted">لا توجد تصنيفات.</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header fw-bold">إضافة منتج</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin_products_add') }}" enctype="multipart/form-data" class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">اسم المنتج</label>
+            <input name="name" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">التصنيف</label>
+            <select name="category_id" class="form-select">
+              <option value="">بدون</option>
+              {% for c in categories %}
+                <option value="{{ c.id }}">{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">الوصف</label>
+            <textarea name="description" class="form-control" rows="3"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">ملاحظات (لا تظهر للزبون، فقط للمسوّق)</label>
+            <textarea name="notes" class="form-control" rows="2" placeholder="شروط خاصة، تعليمات البيع..."></textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">السعر</label>
+            <input name="price" type="number" step="1" class="form-control" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">العمولة</label>
+            <input name="commission" type="number" step="1" class="form-control" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">سعر التوصيل</label>
+            <input name="delivery_price" type="number" step="1" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">طريقة التوصيل</label>
+            <select name="delivery_mode" class="form-select" required>
+              <option value="home">التوصيل للمنزل</option>
+              <option value="office">إلى المكتب</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">الصورة الرئيسية</label>
+            <input name="image" type="file" accept="image/*" class="form-control">
+          </div>
+          <div class="col-12">
+            <label class="form-label">صور إضافية</label>
+            <input name="images[]" type="file" accept="image/*" class="form-control" multiple>
+          </div>
+          <div class="col-12">
+            <button class="btn btn-brand"><i class="fa-solid fa-plus"></i> إضافة المنتج</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-bold">المنتجات</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr><th>#</th><th>الصورة</th><th>الاسم</th><th>التصنيف</th><th>السعر</th><th>التوصيل</th><th></th></tr>
+            </thead>
+            <tbody>
+              {% for p in products %}
+              <tr>
+                <td>{{ p.id }}</td>
+                <td><img src="{{ static_url(p.image_path) }}" style="width:60px;height:60px;object-fit:cover;border-radius:8px"></td>
+                <td>{{ p.name }}</td>
+                <td>{{ p.category_name or '—' }}</td>
+                <td>{{ '%.0f'|format(p.price) }} دج</td>
+                <td>{% if p.delivery_mode=='office' %}إلى المكتب{% else %}للمنزل{% endif %}</td>
+                <td>
+                  <form method="post" action="{{ url_for('admin_products_delete', pid=p.id) }}"
+                        onsubmit="return confirm('حذف المنتج؟')">
+                    <button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="7" class="text-center text-muted">لا توجد منتجات.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+>>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
 </div>
 {% endblock %}

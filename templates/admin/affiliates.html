@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
+<<<<<<< HEAD
 <h5 class="mb-3"><i class="fa-solid fa-users me-2"></i> المسوّقون</h5>
 
 <div class="row g-3">
@@ -26,6 +27,36 @@
               {% else %}
               <tr><td colspan="4" class="text-center text-muted">لا أحد.</td></tr>
               {% endfor %}
+=======
+<h5 class="mb-3"><i class="fa-solid fa-users me-2"></i> المسوقون</h5>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-bold">بانتظار الموافقة</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الهاتف</th><th>تحكم</th></tr></thead>
+            <tbody>
+            {% for u in pending %}
+              <tr>
+                <td>{{ u.id }}</td><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.phone or '—' }}</td>
+                <td>
+                  <form method="post" action="{{ url_for('admin_affiliate_set', uid=u.id) }}" class="d-inline">
+                    <input type="hidden" name="action" value="approve">
+                    <button class="btn btn-sm btn-success">قبول</button>
+                  </form>
+                  <form method="post" action="{{ url_for('admin_affiliate_set', uid=u.id) }}" class="d-inline">
+                    <input type="hidden" name="action" value="disable">
+                    <button class="btn btn-sm btn-outline-danger">تعطيل</button>
+                  </form>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="5" class="text-center text-muted">لا يوجد.</td></tr>
+            {% endfor %}
+>>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
             </tbody>
           </table>
         </div>
@@ -33,6 +64,7 @@
     </div>
   </div>
 
+<<<<<<< HEAD
   <div class="col-12 col-lg-6">
     <div class="card">
       <div class="card-header bg-white">الموافق عليهم</div>
@@ -56,6 +88,24 @@
               {% else %}
               <tr><td colspan="4" class="text-center text-muted">لا أحد.</td></tr>
               {% endfor %}
+=======
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-bold">المقبولون</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الهاتف</th><th>الحالة</th></tr></thead>
+            <tbody>
+            {% for u in approved %}
+              <tr>
+                <td>{{ u.id }}</td><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.phone or '—' }}</td>
+                <td><span class="badge bg-success">مقبول</span></td>
+              </tr>
+            {% else %}
+              <tr><td colspan="5" class="text-center text-muted">لا يوجد.</td></tr>
+            {% endfor %}
+>>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
             </tbody>
           </table>
         </div>

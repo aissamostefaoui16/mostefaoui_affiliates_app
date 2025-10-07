@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
 <h5 class="mb-3"><i class="fa-solid fa-gear me-2"></i> إعدادات الأدمن</h5>
+<<<<<<< HEAD
 <div class="row g-3">
   <div class="col-12 col-lg-5">
     <div class="card">
@@ -16,12 +17,32 @@
           </div>
           <div class="col-12">
             <button class="btn btn-brand"><i class="fa-solid fa-floppy-disk me-1"></i> حفظ</button>
+=======
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header fw-bold">بيانات الأدمن</div>
+      <div class="card-body">
+        <form method="post" class="row g-3">
+          <div class="col-12">
+            <label class="form-label">الإيميل</label>
+            <input name="email" class="form-control" value="{{ admin_user.email if admin_user else '' }}" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label">كلمة السر (اختياري لتغييرها)</label>
+            <input name="password" type="password" class="form-control" minlength="6" placeholder="اتركها فارغة للإبقاء عليها">
+          </div>
+          <div class="col-12">
+            <button class="btn btn-brand"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
+>>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
           </div>
         </form>
       </div>
     </div>
   </div>
 
+<<<<<<< HEAD
   <div class="col-12 col-lg-7">
     <div class="card">
       <div class="card-header bg-white">قائمة المسوّقين</div>
@@ -39,10 +60,38 @@
               </tr>
               {% else %}
               <tr><td colspan="4" class="text-center text-muted">لا يوجد مستخدمون.</td></tr>
+=======
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header fw-bold">المسوّقون</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الهاتف</th><th>الحالة</th></tr>
+            </thead>
+            <tbody>
+              {% for a in affiliates %}
+              <tr>
+                <td>{{ a.id }}</td>
+                <td>{{ a.name }}</td>
+                <td>{{ a.email }}</td>
+                <td>{{ a.phone or '—' }}</td>
+                <td>
+                  {% if a.approved %}<span class="badge bg-success">مقبول</span>{% else %}<span class="badge bg-warning text-dark">بانتظار</span>{% endif %}
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="5" class="text-center text-muted">لا يوجد مسوّقون.</td></tr>
+>>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
               {% endfor %}
             </tbody>
           </table>
         </div>
+<<<<<<< HEAD
+=======
+        <p class="text-muted small mb-0">للموافقة/التعطيل، استخدم صفحة <a href="{{ url_for('admin_affiliates') }}">المسوّقين</a>.</p>
+>>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
       </div>
     </div>
   </div>

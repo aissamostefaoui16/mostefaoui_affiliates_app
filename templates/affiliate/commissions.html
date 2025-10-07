@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
+<<<<<<< HEAD
 <h5 class="mb-3"><i class="fa-solid fa-hand-holding-dollar me-2"></i> عمولاتي</h5>
 
 <div class="row g-3">
@@ -43,4 +44,46 @@
     </div>
   </div>
 </div>
+=======
+<h5 class="mb-3"><i class="fa-solid fa-money-bill-wave me-2"></i> عمولاتي</h5>
+
+<div class="product-card p-3 mb-3">
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="text-muted small">الرصيد القابل للسحب (عمولات مؤكدة)</div>
+      <div class="fs-4 fw-bold">{{ '%.0f'|format(balance) }} دج</div>
+    </div>
+    <div class="col-md-6">
+      <div class="text-muted small">علاوة هذا الأسبوع (تضاف عند السحب لأول مرة هذا الأسبوع)</div>
+      <div class="fs-5 fw-bold text-success">{{ '%.0f'|format(bonus_pending) }} دج</div>
+      <div class="small text-secondary">تحصل على 1000 دج عن كل 10 طلبيات مُؤكدة خلال الأسبوع.</div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      <div class="col-12 col-md-4">
+        <label class="form-label">المبلغ</label>
+        <input type="number" class="form-control" name="amount" step="1" min="0">
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label">طريقة السحب</label>
+        <select name="method" class="form-select">
+          <option value="ccp">CCP</option>
+          <option value="rib">RIB</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label">البيانات (CCP/RIB)</label>
+        <input type="text" class="form-control" name="details" placeholder="رقم الحساب أو RIB">
+      </div>
+      <div class="col-12">
+        <button class="btn btn-brand"><i class="fa-solid fa-paper-plane"></i> طلب سحب</button>
+      </div>
+    </form>
+  </div>
+</div>
+>>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
 {% endblock %}
