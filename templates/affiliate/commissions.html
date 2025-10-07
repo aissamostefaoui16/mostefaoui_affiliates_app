@@ -3,12 +3,16 @@
 <h5 class="mb-3"><i class="fa-solid fa-money-bill-wave me-2"></i> عمولاتي</h5>
 
 <div class="product-card p-3 mb-3">
-  <div class="d-flex justify-content-between align-items-center">
-    <div>
-      <div class="text-muted small">الرصيد القابل للسحب</div>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="text-muted small">الرصيد القابل للسحب (عمولات مؤكدة)</div>
       <div class="fs-4 fw-bold">{{ '%.0f'|format(balance) }} دج</div>
     </div>
-    <span class="chip">حد السحب الأدنى: {{ '%.0f'|format(min_withdraw) }} دج</span>
+    <div class="col-md-6">
+      <div class="text-muted small">علاوة هذا الأسبوع (تضاف عند السحب لأول مرة هذا الأسبوع)</div>
+      <div class="fs-5 fw-bold text-success">{{ '%.0f'|format(bonus_pending) }} دج</div>
+      <div class="small text-secondary">تحصل على 1000 دج عن كل 10 طلبيات مُؤكدة خلال الأسبوع.</div>
+    </div>
   </div>
 </div>
 

@@ -1,21 +1,20 @@
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from functools import wraps
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
-# DB
 import psycopg2
 import psycopg2.extras
 
-# Cloudinary (للصور الدائمة)
 import cloudinary
 import cloudinary.uploader
 
 APP_NAME = "Mostefaoui DZShop Affiliates"
 WITHDRAW_MIN = 5000.0  # DZD
+WEEKLY_BONUS_AMOUNT = 1000.0  # دج/لكل 10 طلبيات مؤكدة في الأسبوع
 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'}
@@ -89,7 +88,7 @@ def pg_exec(conn, sql, params=()):
 def init_db():
     conn = get_db()
     cur = conn.cursor()
-    # Tables
+    # users (phone)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users(
         id SERIAL PRIMARY KEY,
@@ -102,9 +101,9 @@ def init_db():
         created_at TEXT NOT NULL
     );
     """)
-    # add phone if missing
     cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT;")
 
+    # categories
     cur.execute("""
     CREATE TABLE IF NOT EXISTS categories(
         id SERIAL PRIMARY KEY,
@@ -112,6 +111,7 @@ def init_db():
     );
     """)
 
+    # products (category_id, delivery_mode, notes)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS products(
         id SERIAL PRIMARY KEY,
@@ -123,14 +123,16 @@ def init_db():
         image_path TEXT,
         category_id INTEGER REFERENCES categories(id),
         delivery_mode TEXT CHECK (delivery_mode IN ('home','office')) DEFAULT 'home',
+        notes TEXT,
         created_at TEXT NOT NULL
     );
     """)
-    # add new columns if missing
     cur.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES categories(id);")
     cur.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS delivery_mode TEXT;")
     cur.execute("ALTER TABLE products ALTER COLUMN delivery_mode SET DEFAULT 'home';")
+    cur.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS notes TEXT;")
 
+    # product_images
     cur.execute("""
     CREATE TABLE IF NOT EXISTS product_images(
         id SERIAL PRIMARY KEY,
@@ -140,6 +142,7 @@ def init_db():
     );
     """)
 
+    # orders
     cur.execute("""
     CREATE TABLE IF NOT EXISTS orders(
         id SERIAL PRIMARY KEY,
@@ -153,6 +156,7 @@ def init_db():
     );
     """)
 
+    # withdrawals (+ bonus column)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS withdrawals(
         id SERIAL PRIMARY KEY,
@@ -161,11 +165,13 @@ def init_db():
         method TEXT NOT NULL,
         details TEXT NOT NULL,
         status TEXT NOT NULL CHECK(status IN ('requested','approved','rejected')),
+        bonus NUMERIC NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL
     );
     """)
+    cur.execute("ALTER TABLE withdrawals ADD COLUMN IF NOT EXISTS bonus NUMERIC NOT NULL DEFAULT 0;")
 
-    # Static pages: privacy/about/contact (قابلة للتحرير)
+    # pages (static editable pages)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS pages(
         id SERIAL PRIMARY KEY,
@@ -174,12 +180,25 @@ def init_db():
         content TEXT NOT NULL
     );
     """)
-    # seed pages if missing
     for slug, title in [('privacy','سياسة الخصوصية'), ('about','من نحن'), ('contact','تواصل معنا')]:
         cur.execute("SELECT 1 FROM pages WHERE slug=%s", (slug,))
         if not cur.fetchone():
             cur.execute("INSERT INTO pages(slug,title,content) VALUES(%s,%s,%s)",
-                        (slug, title, f"{title} - محتوى تجريبي."))
+                        (slug, title, f"{title} - محتوى افتراضي."))
+
+    # weekly bonus ledger (to avoid awarding bonus twice in same ISO week)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS bonuses(
+        id SERIAL PRIMARY KEY,
+        affiliate_id INTEGER NOT NULL REFERENCES users(id),
+        iso_year INTEGER NOT NULL,
+        iso_week INTEGER NOT NULL,
+        amount NUMERIC NOT NULL,
+        created_at TEXT NOT NULL,
+        UNIQUE(affiliate_id, iso_year, iso_week)
+    );
+    """)
+
     conn.commit()
 
     # seed admin
@@ -198,9 +217,9 @@ def init_db():
         cur.execute("INSERT INTO categories(name) VALUES('عام') ON CONFLICT DO NOTHING;")
         cur.execute("SELECT id FROM categories WHERE name='عام'")
         cat_id = cur.fetchone()['id']
-        cur.execute("""INSERT INTO products(name,description,price,commission,delivery_price,image_path,category_id,delivery_mode,created_at)
-                       VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
-                    ('مثال: خلاط مطبخ','وصف موجز.',12990,800,700,'static/img/placeholder.svg', cat_id, 'home', datetime.now(timezone.utc).isoformat()))
+        cur.execute("""INSERT INTO products(name,description,price,commission,delivery_price,image_path,category_id,delivery_mode,notes,created_at)
+                       VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                    ('مثال: خلاط مطبخ','وصف موجز.',12990,800,700,'static/img/placeholder.svg', cat_id, 'home','ملاحظة إدارية تجريبية.', datetime.now(timezone.utc).isoformat()))
         conn.commit()
 
     cur.close()
@@ -225,6 +244,52 @@ def current_user():
     cur = pg_exec(conn, "SELECT * FROM users WHERE id=%s", (session['user_id'],))
     u = cur.fetchone(); cur.close(); conn.close()
     return u
+
+# -------- Bonus helpers --------
+def get_current_iso_year_week():
+    dt = datetime.now(timezone.utc).isocalendar()
+    return dt.year, dt.week
+
+def calc_weekly_bonus_pending(affiliate_id):
+    """
+    يحسب العلاوة المتاحة لهذا الأسبوع (غير المصروفة بعد):
+    - يحسب عدد الطلبات المؤكدة (delivered) لهذا الأسبوع.
+    - كل 10 = 1000 دج.
+    - إذا تم صرفها هذا الأسبوع (مسجلة في bonuses) → 0.
+    """
+    conn = get_db()
+    # بداية الأسبوع (الاثنين) بحساب ISO — نقرب بآخر 7 أيام من الآن (حل بسيط ومقبول)
+    since = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+    cur = pg_exec(conn, """
+        SELECT COUNT(*) AS n
+        FROM orders
+        WHERE affiliate_id=%s AND status='delivered' AND created_at >= %s
+    """, (affiliate_id, since))
+    n = cur.fetchone()['n']
+    bonus_candidate = (n // 10) * WEEKLY_BONUS_AMOUNT
+
+    # هل صُرفت من قبل هذا الأسبوع؟
+    y, w = get_current_iso_year_week()
+    cur2 = pg_exec(conn, "SELECT 1 FROM bonuses WHERE affiliate_id=%s AND iso_year=%s AND iso_week=%s",
+                   (affiliate_id, y, w))
+    already = cur2.fetchone() is not None
+    cur.close(); cur2.close(); conn.close()
+    return 0.0 if already else float(bonus_candidate)
+
+def award_weekly_bonus_if_any(conn, affiliate_id, amount):
+    """
+    يسجل العلاوة لهذا الأسبوع في جدول bonuses (لتفادي الصرف المكرر)
+    ويُرجع القيمة المصروفة فعلًا (0 أو amount).
+    """
+    if amount <= 0: return 0.0
+    y, w = get_current_iso_year_week()
+    try:
+        pg_exec(conn, """INSERT INTO bonuses(affiliate_id,iso_year,iso_week,amount,created_at)
+                         VALUES(%s,%s,%s,%s,%s)""",
+               (affiliate_id, y, w, amount, datetime.now(timezone.utc).isoformat()))
+        return float(amount)
+    except psycopg2.Error:
+        return 0.0
 
 # -------------- Auth routes --------------
 @app.route('/register', methods=['GET','POST'])
@@ -300,7 +365,6 @@ def home():
 @app.route('/affiliate/products')
 @login_required(role='affiliate')
 def affiliate_products():
-    # Optional filter by category id
     cat_id = request.args.get('cat', type=int)
     conn = get_db()
     if cat_id:
@@ -377,7 +441,7 @@ def calc_affiliate_balance(affiliate_id):
     """,(affiliate_id,))
     earned=cur.fetchone()['total']
     cur2=pg_exec(conn, """
-        SELECT COALESCE(SUM(amount),0) AS total FROM withdrawals
+        SELECT COALESCE(SUM(amount+bonus),0) AS total FROM withdrawals
         WHERE affiliate_id=%s AND status IN ('requested','approved')
     """,(affiliate_id,))
     requested=cur2.fetchone()['total']
@@ -388,21 +452,29 @@ def calc_affiliate_balance(affiliate_id):
 @login_required(role='affiliate')
 def affiliate_commissions():
     bal=calc_affiliate_balance(session['user_id'])
+    bonus_pending = calc_weekly_bonus_pending(session['user_id'])  # ممكن يكون 0 لو صُرفت هذا الأسبوع
     if request.method=='POST':
         method=request.form.get('method')
         details=request.form.get('details','').strip()
         try: amount=float(request.form.get('amount','0') or 0)
         except: amount=0
-        if method not in ('ccp','rib'): flash('اختر CCP أو RIB','danger'); return redirect(url_for('affiliate_commissions'))
-        if amount<=0 or amount>bal: flash('قيمة السحب غير صالحة','danger'); return redirect(url_for('affiliate_commissions'))
-        if amount<WITHDRAW_MIN: flash(f'الحد الأدنى للسحب {WITHDRAW_MIN:.0f} دج','danger'); return redirect(url_for('affiliate_commissions'))
+        total_available = bal + bonus_pending
+        if method not in ('ccp','rib'):
+            flash('اختر CCP أو RIB','danger'); return redirect(url_for('affiliate_commissions'))
+        if amount<=0 or amount>total_available:
+            flash('قيمة السحب غير صالحة (تحقق من الرصيد والعلاوة).','danger'); return redirect(url_for('affiliate_commissions'))
+        if amount<WITHDRAW_MIN and total_available>=WITHDRAW_MIN:
+            flash(f'الحد الأدنى للسحب {WITHDRAW_MIN:.0f} دج','danger'); return redirect(url_for('affiliate_commissions'))
         conn=get_db()
-        pg_exec(conn, """INSERT INTO withdrawals(affiliate_id,amount,method,details,status,created_at)
-                         VALUES(%s,%s,%s,%s,%s,%s)""",
-                (session['user_id'],amount,method,details,'requested',datetime.now(timezone.utc).isoformat()))
+        # صَرف العلاوة (إن وُجدت وغير مصروفة في هذا الأسبوع)
+        awarded = award_weekly_bonus_if_any(conn, session['user_id'], bonus_pending)
+        pg_exec(conn, """INSERT INTO withdrawals(affiliate_id,amount,method,details,status,bonus,created_at)
+                         VALUES(%s,%s,%s,%s,%s,%s,%s)""",
+                (session['user_id'], amount, method, details, 'requested', awarded, datetime.now(timezone.utc).isoformat()))
         conn.commit(); conn.close()
-        flash('تم إرسال طلب السحب','success'); return redirect(url_for('affiliate_commissions'))
-    return render_template('affiliate/commissions.html', balance=bal, min_withdraw=WITHDRAW_MIN)
+        flash(f'تم إرسال طلب السحب. العلاوة المضافة لهذا الأسبوع: {awarded:.0f} دج','success')
+        return redirect(url_for('affiliate_commissions'))
+    return render_template('affiliate/commissions.html', balance=bal, min_withdraw=WITHDRAW_MIN, bonus_pending=bonus_pending)
 
 @app.route('/affiliate/settings', methods=['GET','POST'])
 @login_required(role='affiliate')
@@ -507,15 +579,16 @@ def admin_products_add():
     description=request.form.get('description','').strip()
     category_id=request.form.get('category_id', type=int)
     delivery_mode=request.form.get('delivery_mode')
+    notes=request.form.get('notes','').strip()
     main_image=request.files.get('image')
     extra_images=request.files.getlist('images[]')
     if not name or price<=0 or commission<0 or delivery_price<0 or delivery_mode not in ('home','office'):
         flash('تحقق من الحقول','danger'); return redirect(url_for('admin_products'))
     main_path=save_file(main_image) or 'static/img/placeholder.svg'
     conn=get_db(); cur=conn.cursor()
-    cur.execute("""INSERT INTO products(name,description,price,commission,delivery_price,image_path,category_id,delivery_mode,created_at)
-                   VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
-                (name,description,price,commission,delivery_price,main_path,category_id,delivery_mode,datetime.now(timezone.utc).isoformat()))
+    cur.execute("""INSERT INTO products(name,description,price,commission,delivery_price,image_path,category_id,delivery_mode,notes,created_at)
+                   VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+                (name,description,price,commission,delivery_price,main_path,category_id,delivery_mode,notes,datetime.now(timezone.utc).isoformat()))
     pid=cur.fetchone()['id']
     for f in extra_images:
         p=save_file(f)
@@ -574,11 +647,10 @@ def admin_settings():
             conn.commit(); flash('تم حفظ الإعدادات','success')
         else:
             flash('الإيميل مطلوب','danger')
+    # البيانات للعرض
     cur=pg_exec(conn,"SELECT id,name,email,approved,phone,created_at FROM users WHERE role='affiliate' ORDER BY id DESC")
     affiliates=cur.fetchall()
     cur=pg_exec(conn,"SELECT id,name,email FROM users WHERE role='admin' LIMIT 1")
     admin_user=cur.fetchone()
     conn.close()
     return render_template('admin/settings.html', admin_user=admin_user, affiliates=affiliates)
-
-# Gunicorn will run app_pg:app

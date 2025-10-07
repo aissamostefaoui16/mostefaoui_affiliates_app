@@ -46,6 +46,10 @@
             <label class="form-label">الوصف</label>
             <textarea name="description" class="form-control" rows="3"></textarea>
           </div>
+          <div class="col-12">
+            <label class="form-label">ملاحظات (لا تظهر للزبون، فقط للمسوّق)</label>
+            <textarea name="notes" class="form-control" rows="2" placeholder="شروط خاصة، تعليمات البيع..."></textarea>
+          </div>
           <div class="col-md-4">
             <label class="form-label">السعر</label>
             <input name="price" type="number" step="1" class="form-control" required>
@@ -96,7 +100,7 @@
                 <td>{{ p.name }}</td>
                 <td>{{ p.category_name or '—' }}</td>
                 <td>{{ '%.0f'|format(p.price) }} دج</td>
-                <td>{% if p.delivery_mode=='home' %}للمنزل{% else %}إلى المكتب{% endif %}</td>
+                <td>{% if p.delivery_mode=='office' %}إلى المكتب{% else %}للمنزل{% endif %}</td>
                 <td>
                   <form method="post" action="{{ url_for('admin_products_delete', pid=p.id) }}"
                         onsubmit="return confirm('حذف المنتج؟')">

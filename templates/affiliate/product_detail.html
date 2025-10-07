@@ -13,6 +13,21 @@
             <i class="fa-regular fa-copy"></i>
           </button>
         </div>
+
+        <div class="small text-secondary mb-2">
+          طريقة التوصيل:
+          <strong class="text-dark">
+            {% if p.delivery_mode=='office' %}إلى المكتب{% else %}للمنزل{% endif %}
+          </strong>
+        </div>
+
+        {% if p.notes %}
+        <div class="alert alert-warning py-2 small">
+          <i class="fa-solid fa-circle-info"></i>
+          <strong>ملاحظات الأدمن:</strong> {{ p.notes }}
+        </div>
+        {% endif %}
+
         <p id="prodDesc" class="text-muted small">{{ p.description or '' }}</p>
         <div class="d-flex gap-3 small text-secondary mb-2">
           <span>السعر: <strong class="text-dark">{{ '%.0f'|format(p.price) }} دج</strong></span>

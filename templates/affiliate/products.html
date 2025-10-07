@@ -22,11 +22,28 @@
           <h6 class="fw-bold mb-0" id="name-{{p.id}}">{{ p.name }}</h6>
           <span class="chip">{{ p.category_name or 'بدون تصنيف' }}</span>
         </div>
+
+        <div class="small text-secondary mb-1">
+          طريقة التوصيل:
+          <strong class="text-dark">
+            {% if p.delivery_mode=='office' %}إلى المكتب{% else %}للمنزل{% endif %}
+          </strong>
+        </div>
+
+        {% if p.notes %}
+        <div class="alert alert-warning py-2 small">
+          <i class="fa-solid fa-circle-info"></i>
+          <strong>ملاحظات الأدمن:</strong> {{ p.notes }}
+        </div>
+        {% endif %}
+
         <p class="text-muted small mb-2" id="desc-{{p.id}}">{{ p.description or '—' }}</p>
+
         <div class="d-flex align-items-center justify-content-between mb-2">
           <div class="fw-bold">{{ '%.0f'|format(p.price) }} دج</div>
           <small class="text-secondary">توصيل: {{ '%.0f'|format(p.delivery_price) }} دج</small>
         </div>
+
         <div class="d-grid gap-2">
           <a class="btn btn-brand" href="{{ url_for('affiliate_product_detail', pid=p.id) }}">
             <i class="fa-regular fa-eye"></i> عرض التفاصيل
