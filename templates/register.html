@@ -1,30 +1,29 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-body">
-        <h4 class="mb-3 text-center"><i class="fa-solid fa-user-plus"></i> تسجيل مسوّق جديد</h4>
-        <form method="post">
-          <div class="mb-3">
-            <label class="form-label">الاسم الكامل</label>
-            <input name="name" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">الإيميل</label>
-            <input name="email" type="email" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">كلمة المرور</label>
-            <input name="password" type="password" class="form-control" required>
-          </div>
-          <button class="btn btn-brand w-100">تسجيل</button>
-        </form>
-        <div class="text-center mt-3">
-          <a href="{{ url_for('login') }}">عندي حساب؟ تسجيل الدخول</a>
-        </div>
+<h5 class="mb-3"><i class="fa-solid fa-user-plus me-2"></i> تسجيل مسوّق</h5>
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">الاسم الكامل</label>
+        <input name="name" class="form-control" required>
       </div>
-    </div>
+      <div class="col-md-6">
+        <label class="form-label">الإيميل</label>
+        <input name="email" type="email" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">رقم الهاتف</label>
+        <input name="phone" class="form-control" placeholder="مثال: 0550123456" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">كلمة السر</label>
+        <input name="password" type="password" minlength="6" class="form-control" required>
+      </div>
+      <div class="col-12">
+        <button class="btn btn-brand"><i class="fa-solid fa-paper-plane"></i> تسجيل</button>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}

@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block content %}
+<h5 class="mb-3"><i class="fa-solid fa-layer-group me-2"></i> التصنيفات</h5>
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    <form method="get" action="{{ url_for('affiliate_products') }}" class="row g-3">
+      <div class="col-12 col-md-6">
+        <label class="form-label">اختر تصنيف</label>
+        <select name="cat" class="form-select">
+          <option value="">كل التصنيفات</option>
+          {% for c in categories %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-6 d-flex align-items-end">
+        <button class="btn btn-brand"><i class="fa-solid fa-filter"></i> عرض المنتجات</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -20,3 +20,8 @@ body{background:var(--bg);}
 @media (max-width:576px){
   .thumb{height:150px}
 }
+/* تحسينات بسيطة إضافية */
+a{text-decoration:none}
+.card, .product-card{border-radius:16px}
+.btn{border-radius:12px}
+img{border-radius:12px}

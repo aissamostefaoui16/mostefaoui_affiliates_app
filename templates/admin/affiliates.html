@@ -1,52 +1,61 @@
 {% extends "layout.html" %}
 {% block content %}
-<h4 class="mb-3"><i class="fa-solid fa-users"></i> إدارة المسوّقين</h4>
+<h5 class="mb-3"><i class="fa-solid fa-users me-2"></i> المسوقون</h5>
 
-<div class="card mb-4">
-  <div class="card-header fw-bold">بانتظار الموافقة</div>
-  <div class="table-responsive">
-    <table class="table mb-0">
-      <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>تاريخ</th><th>إجراء</th></tr></thead>
-      <tbody>
-        {% for u in pending %}
-        <tr>
-          <td>{{ u.id }}</td><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.created_at[:19].replace('T',' ') }}</td>
-          <td>
-            <form method="post" action="{{ url_for('admin_affiliate_set', uid=u.id) }}">
-              <input type="hidden" name="action" value="approve">
-              <button class="btn btn-sm btn-success"><i class="fa-solid fa-check"></i> موافقة</button>
-            </form>
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5" class="text-center text-muted">لا يوجد طلبات</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-bold">بانتظار الموافقة</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الهاتف</th><th>تحكم</th></tr></thead>
+            <tbody>
+            {% for u in pending %}
+              <tr>
+                <td>{{ u.id }}</td><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.phone or '—' }}</td>
+                <td>
+                  <form method="post" action="{{ url_for('admin_affiliate_set', uid=u.id) }}" class="d-inline">
+                    <input type="hidden" name="action" value="approve">
+                    <button class="btn btn-sm btn-success">قبول</button>
+                  </form>
+                  <form method="post" action="{{ url_for('admin_affiliate_set', uid=u.id) }}" class="d-inline">
+                    <input type="hidden" name="action" value="disable">
+                    <button class="btn btn-sm btn-outline-danger">تعطيل</button>
+                  </form>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="5" class="text-center text-muted">لا يوجد.</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
 
-<div class="card">
-  <div class="card-header fw-bold">المقبولون</div>
-  <div class="table-responsive">
-    <table class="table mb-0">
-      <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>تاريخ</th><th>إجراء</th></tr></thead>
-      <tbody>
-        {% for u in approved %}
-        <tr>
-          <td>{{ u.id }}</td><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.created_at[:19].replace('T',' ') }}</td>
-          <td>
-            <form method="post" action="{{ url_for('admin_affiliate_set', uid=u.id) }}">
-              <input type="hidden" name="action" value="disable">
-              <button class="btn btn-sm btn-warning"><i class="fa-solid fa-ban"></i> تعطيل</button>
-            </form>
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5" class="text-center text-muted">لا يوجد مسوّقون</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-bold">المقبولون</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الهاتف</th><th>الحالة</th></tr></thead>
+            <tbody>
+            {% for u in approved %}
+              <tr>
+                <td>{{ u.id }}</td><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.phone or '—' }}</td>
+                <td><span class="badge bg-success">مقبول</span></td>
+              </tr>
+            {% else %}
+              <tr><td colspan="5" class="text-center text-muted">لا يوجد.</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

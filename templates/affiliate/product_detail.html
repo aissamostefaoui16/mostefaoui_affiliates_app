@@ -1,31 +1,37 @@
 {% extends "layout.html" %}
 {% block content %}
+<h5 class="mb-3"><i class="fa-regular fa-eye me-2"></i> تفاصيل المنتج</h5>
+
 <div class="row g-3">
-  <div class="col-md-6">
-    <div class="card">
-      <img src="{{ static_url(p.image_path) }}" class="card-img-top" style="object-fit:cover;max-height:280px;">
-      <div class="card-body">
-        <h4 class="fw-bold d-flex align-items-center justify-content-between">
-          <span id="prodName">{{ p.name }}</span>
-          <button class="btn btn-sm btn-outline-secondary" onclick="copyText('#prodName')" title="نسخ الاسم">
+  <div class="col-lg-6">
+    <div class="product-card">
+      <img src="{{ static_url(p.image_path) }}" alt="">
+      <div class="p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <h5 id="prodName" class="fw-bold mb-1">{{ p.name }}</h5>
+          <button class="btn btn-sm btn-ghost" onclick="copyText('#prodName')" title="نسخ الاسم">
             <i class="fa-regular fa-copy"></i>
           </button>
-        </h4>
-        <p class="text-muted d-flex justify-content-between">
-          <span id="prodDesc">{{ p.description or '' }}</span>
-          <button class="btn btn-sm btn-outline-secondary" onclick="copyText('#prodDesc')" title="نسخ الوصف">
-            <i class="fa-regular fa-copy"></i>
-          </button>
-        </p>
+        </div>
+        <p id="prodDesc" class="text-muted small">{{ p.description or '' }}</p>
+        <div class="d-flex gap-3 small text-secondary mb-2">
+          <span>السعر: <strong class="text-dark">{{ '%.0f'|format(p.price) }} دج</strong></span>
+          <span>العمولة: <strong class="text-dark">{{ '%.0f'|format(p.commission) }} دج</strong></span>
+          <span>التوصيل: <strong class="text-dark">{{ '%.0f'|format(p.delivery_price) }} دج</strong></span>
+        </div>
 
-        <div class="mb-2">السعر: <strong>{{ '%.0f'|format(p.price) }} دج</strong></div>
-        <div class="mb-2">عمولتك: <strong>{{ '%.0f'|format(p.commission) }} دج</strong></div>
-        <div class="mb-3">سعر التوصيل: <strong>{{ '%.0f'|format(p.delivery_price) }} دج</strong></div>
-
-        <div class="d-flex gap-2 flex-wrap">
-          <a class="btn btn-success" href="{{ dl_url(p.image_path) }}" download>
+        <div class="d-grid gap-2">
+          <a class="btn btn-ghost" href="{{ dl_url(p.image_path) }}" download>
             <i class="fa-solid fa-download"></i> تنزيل الصورة الرئيسية
           </a>
+          <div class="d-flex gap-2">
+            <button class="btn btn-ghost flex-fill" onclick="copyText('#prodName')">
+              <i class="fa-regular fa-copy"></i> نسخ الاسم
+            </button>
+            <button class="btn btn-ghost flex-fill" onclick="copyText('#prodDesc')">
+              <i class="fa-regular fa-copy"></i> نسخ الوصف
+            </button>
+          </div>
           <a class="btn btn-brand" href="{{ url_for('affiliate_order', pid=p.id) }}">
             <i class="fa-solid fa-cart-plus"></i> إنشاء طلبية
           </a>
@@ -34,16 +40,16 @@
     </div>
   </div>
 
-  <div class="col-md-6">
-    <div class="card">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
       <div class="card-body">
-        <h5 class="fw-bold mb-3"><i class="fa-regular fa-images"></i> الصور الإضافية</h5>
+        <h6 class="fw-bold mb-3"><i class="fa-regular fa-images me-2"></i> الصور الإضافية</h6>
         <div class="row g-2">
           {% for im in images %}
           <div class="col-6">
             <div class="border rounded p-1 h-100">
               <img src="{{ static_url(im.image_path) }}" class="img-fluid rounded mb-2" style="object-fit:cover;height:140px;width:100%;">
-              <a class="btn btn-sm btn-outline-success w-100" href="{{ dl_url(im.image_path) }}" download>
+              <a class="btn btn-sm btn-ghost w-100" href="{{ dl_url(im.image_path) }}" download>
                 <i class="fa-solid fa-download"></i> تنزيل
               </a>
             </div>

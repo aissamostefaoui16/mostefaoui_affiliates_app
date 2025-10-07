@@ -1,39 +1,36 @@
 {% extends "layout.html" %}
 {% block content %}
-<h4 class="mb-3"><i class="fa-solid fa-receipt"></i> طلباتي</h4>
-<div class="card">
-  <div class="table-responsive">
-    <table class="table table-striped mb-0">
-      <thead>
-        <tr>
-          <th>#</th><th>التاريخ</th><th>المنتج</th><th>العمولة</th><th>السعر</th><th>الزبون</th><th>الهاتف</th><th>العنوان</th><th>الحالة</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for o in rows %}
-        <tr>
-          <td>{{ o.id }}</td>
-          <td>{{ o.created_at[:19].replace('T',' ') }}</td>
-          <td class="d-flex align-items-center gap-2">
-            <img src="{{ static_url(o.image_path) }}" width="48" height="32" style="object-fit:cover;border-radius:.25rem;">
-            <span>{{ o.product_name }}</span>
-          </td>
-          <td>{{ '%.0f'|format(o.commission) }} دج</td>
-          <td>{{ '%.0f'|format(o.price) }} دج</td>
-          <td>{{ o.customer_name }}</td>
-          <td>{{ o.customer_phone }}</td>
-          <td>{{ o.customer_address }}</td>
-          <td>
-            {% if o.status == 'pending' %}<span class="badge bg-warning">في الانتظار</span>
-            {% elif o.status == 'delivered' %}<span class="badge bg-success">تم التوصيل</span>
-            {% else %}<span class="badge bg-danger">أُلغيت</span>{% endif %}
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="9" class="text-center text-muted">لا توجد طلبيات بعد</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<h5 class="mb-3"><i class="fa-solid fa-box me-2"></i> طلباتي</h5>
+
+<div class="row g-3">
+  {% for r in rows %}
+  <div class="col-12">
+    <div class="product-card p-3">
+      <div class="d-flex align-items-center gap-3">
+        <img src="{{ static_url(r.image_path) }}" style="width:88px;height:88px;object-fit:cover;border-radius:12px">
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between">
+            <h6 class="fw-bold mb-1">{{ r.product_name }}</h6>
+            <span class="badge {% if r.status=='delivered' %}bg-success{% elif r.status=='canceled' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+              {% if r.status=='delivered' %}تم التوصيل{% elif r.status=='canceled' %}ملغاة{% else %}بانتظار{% endif %}
+            </span>
+          </div>
+          <div class="text-muted small">
+            الزبون: {{ r.customer_name }} — {{ r.customer_phone }}<br>
+            العنوان: {{ r.customer_address }}
+          </div>
+          <div class="d-flex gap-3 small mt-1">
+            <span>السعر: <strong class="text-dark">{{ '%.0f'|format(r.price) }} دج</strong></span>
+            <span>عمولتي: <strong class="text-dark">{{ '%.0f'|format(r.commission) }} دج</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+  {% else %}
+  <div class="col-12">
+    <div class="alert alert-info">لا توجد طلبات بعد.</div>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}
