@@ -1,4 +1,93 @@
 {% extends "layout.html" %}
 {% block content %}
+<<<<<<< HEAD
   <div class="py-4"><p class="text-muted">القالب <code>affiliate/commissions.html</code> مفقود؛ هذا مؤقت لتفادي الخطأ.</p></div>
+=======
+
+<h5 class="mb-3"><i class="fa-solid fa-hand-holding-dollar me-2"></i> عمولاتي</h5>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>الرصيد المتاح</div>
+          <div class="fs-4 fw-bold">{{ balance|int }} دج</div>
+        </div>
+        <div class="small text-muted mb-2">الحد الأدنى للسحب: {{ min_withdraw|int }} دج</div>
+
+        {% if bonus_pending and bonus_pending>0 %}
+        <div class="alert alert-success py-2">
+          <i class="fa-solid fa-gift me-1"></i>
+          لديك علاوة أسبوعية متاحة: <b>{{ bonus_pending|int }} دج</b> (تُضاف تلقائيًا عند أول عملية سحب هذا الأسبوع).
+        </div>
+        {% endif %}
+
+        <form method="post" class="row g-2">
+          <div class="col-6">
+            <label class="form-label">المبلغ</label>
+            <input type="number" min="0" step="1" class="form-control" name="amount" required>
+          </div>
+          <div class="col-6">
+            <label class="form-label">الطريقة</label>
+            <select class="form-select" name="method" required>
+              <option value="ccp">CCP</option>
+              <option value="rib">RIB</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">تفاصيل (رقم CCP/RIB)</label>
+            <input class="form-control" name="details" required>
+          </div>
+          <div class="col-12">
+            <button class="btn btn-brand w-100"><i class="fa-solid fa-money-bill-transfer me-1"></i> طلب سحب</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h5 class="mb-3"><i class="fa-solid fa-money-bill-wave me-2"></i> عمولاتي</h5>
+
+<div class="product-card p-3 mb-3">
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="text-muted small">الرصيد القابل للسحب (عمولات مؤكدة)</div>
+      <div class="fs-4 fw-bold">{{ '%.0f'|format(balance) }} دج</div>
+    </div>
+    <div class="col-md-6">
+      <div class="text-muted small">علاوة هذا الأسبوع (تضاف عند السحب لأول مرة هذا الأسبوع)</div>
+      <div class="fs-5 fw-bold text-success">{{ '%.0f'|format(bonus_pending) }} دج</div>
+      <div class="small text-secondary">تحصل على 1000 دج عن كل 10 طلبيات مُؤكدة خلال الأسبوع.</div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      <div class="col-12 col-md-4">
+        <label class="form-label">المبلغ</label>
+        <input type="number" class="form-control" name="amount" step="1" min="0">
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label">طريقة السحب</label>
+        <select name="method" class="form-select">
+          <option value="ccp">CCP</option>
+          <option value="rib">RIB</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label">البيانات (CCP/RIB)</label>
+        <input type="text" class="form-control" name="details" placeholder="رقم الحساب أو RIB">
+      </div>
+      <div class="col-12">
+        <button class="btn btn-brand"><i class="fa-solid fa-paper-plane"></i> طلب سحب</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+>>>>>>> c2e8f00253edd3dfd5428ed72cdeafdc5033522a
 {% endblock %}

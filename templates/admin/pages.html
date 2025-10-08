@@ -1,4 +1,55 @@
 {% extends "layout.html" %}
 {% block content %}
+<<<<<<< HEAD
   <div class="py-4"><p class="text-muted">القالب <code>admin/pages.html</code> مفقود؛ هذا مؤقت لتفادي الخطأ.</p></div>
+=======
+
+<h5 class="mb-3"><i class="fa-regular fa-file-lines me-2"></i> الصفحات</h5>
+<div class="row g-3">
+  {% for pg in pages %}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white fw-semibold">{{ pg.title }} ({{ pg.slug }})</div>
+      <div class="card-body">
+        <form method="post" class="row g-2">
+          <input type="hidden" name="slug" value="{{ pg.slug }}">
+          <div class="col-12 col-md-4">
+            <label class="form-label">العنوان</label>
+            <input class="form-control" name="title" value="{{ pg.title }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label">المحتوى</label>
+            <textarea class="form-control" rows="5" name="content">{{ pg.content }}</textarea>
+          </div>
+          <div class="col-12">
+            <button class="btn btn-brand"><i class="fa-solid fa-floppy-disk me-1"></i> حفظ</button>
+          </div>
+
+<h5 class="mb-3"><i class="fa-solid fa-file-lines me-2"></i> الصفحات الثابتة</h5>
+
+<div class="row g-3">
+  {% for pg in pages %}
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-bold">{{ pg.title }} ({{ pg.slug }})</div>
+      <div class="card-body">
+        <form method="post">
+          <input type="hidden" name="slug" value="{{ pg.slug }}">
+          <div class="mb-2">
+            <label class="form-label">العنوان</label>
+            <input name="title" class="form-control" value="{{ pg.title }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">المحتوى</label>
+            <textarea name="content" class="form-control" rows="6" required>{{ pg.content }}</textarea>
+          </div>
+          <button class="btn btn-brand"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+>>>>>>> c2e8f00253edd3dfd5428ed72cdeafdc5033522a
 {% endblock %}

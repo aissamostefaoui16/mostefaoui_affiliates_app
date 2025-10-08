@@ -1,4 +1,33 @@
 {% extends "layout.html" %}
 {% block content %}
+<<<<<<< HEAD
   <div class="py-4"><p class="text-muted">القالب <code>register.html</code> مفقود؛ هذا مؤقت لتفادي الخطأ.</p></div>
+=======
+<h5 class="mb-3"><i class="fa-solid fa-user-plus me-2"></i> تسجيل مسوّق</h5>
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">الاسم الكامل</label>
+        <input name="name" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">الإيميل</label>
+        <input name="email" type="email" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">رقم الهاتف</label>
+        <input name="phone" class="form-control" placeholder="مثال: 0550123456" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">كلمة السر</label>
+        <input name="password" type="password" minlength="6" class="form-control" required>
+      </div>
+      <div class="col-12">
+        <button class="btn btn-brand"><i class="fa-solid fa-paper-plane"></i> تسجيل</button>
+      </div>
+    </form>
+  </div>
+</div>
+>>>>>>> c2e8f00253edd3dfd5428ed72cdeafdc5033522a
 {% endblock %}

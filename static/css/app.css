@@ -1,0 +1,89 @@
+:root{
+
+  --brand:#f7a311;
+}
+body.bg-body{ background:#fafafa; }
+
+/* brand bar */
+.brand-bar{
+  background:var(--brand);
+  color:#000;
+  padding:.55rem 0;
+}
+.brand-title{ font-size:15px; }
+
+/* white navbar */
+.nav-white{ background:#fff; }
+.nav-white .nav-link{ color:#222; }
+.nav-white .nav-link.active,
+.nav-white .nav-link:hover{ color:#000; }
+
+/* footer */
+.footer{ background:#fff; }
+
+/* buttons */
+.btn-brand{
+  background:var(--brand);
+  border-color:var(--brand);
+  color:#111;
+}
+.btn-brand:hover{
+  background:#e89a0e;
+  border-color:#e89a0e;
+  color:#111;
+}
+
+/* products */
+.product-card .product-thumb{
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+.product-title{ font-size:.95rem; }
+.price{ font-weight:700; }
+.badge.bg-brand{ background: #ffe4b5; color:#8a5b00; }
+
+/* copy box */
+.copy-box{
+  position:relative;
+  background:#fff;
+  border:1px solid #eee;
+  border-radius:8px;
+  padding:10px 42px 10px 10px;
+}
+.copy-box .copy-btn{
+  position:absolute;
+  inset-inline-end:6px;
+  top:6px;
+}
+
+/* small tweaks */
+.card{ border-radius:14px; overflow:hidden; }
+img.rounded{ border-radius:10px; }
+
+  --brand:#6d28d9; 
+  --brand-2:#22c55e;
+  --bg:#f7f7fb;
+  --muted:#6b7280;
+}
+html,body{height:100%}
+body{background:var(--bg);}
+.navbar{border-bottom:1px solid #eee;}
+.brand{font-weight:800;letter-spacing:.3px;color:var(--brand)!important}
+.card{border:0;border-radius:1rem;box-shadow:0 8px 20px rgba(0,0,0,.06);}
+.btn-brand{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn-brand:hover{filter:brightness(.94);}
+.badge-soft{background:rgba(109,40,217,.12);color:var(--brand);}
+.thumb{object-fit:cover;height:180px;width:100%;border-top-left-radius:1rem;border-top-right-radius:1rem;}
+.gallery img{object-fit:cover;width:100%;height:110px;border-radius:.5rem;}
+.stat .num{font-size:32px;font-weight:800}
+.stat .lbl{color:var(--muted)}
+.table>:not(caption)>*>*{vertical-align:middle}
+@media (max-width:576px){
+  .thumb{height:150px}
+}
+/* تحسينات بسيطة إضافية */
+a{text-decoration:none}
+.card, .product-card{border-radius:16px}
+.btn{border-radius:12px}
+img{border-radius:12px}
+

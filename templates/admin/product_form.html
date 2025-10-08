@@ -1,4 +1,79 @@
 {% extends "layout.html" %}
 {% block content %}
+<<<<<<< HEAD
   <div class="py-4"><p class="text-muted">القالب <code>admin/product_form.html</code> مفقود؛ هذا مؤقت لتفادي الخطأ.</p></div>
+=======
+<h5 class="mb-3">
+  <i class="fa-solid fa-box me-2"></i>
+  {{ 'تعديل منتج' if p else 'إضافة منتج' }}
+</h5>
+
+<form method="post" enctype="multipart/form-data" class="row g-3">
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-body row g-3">
+        <div class="col-12">
+          <label class="form-label">اسم المنتج</label>
+          <input class="form-control" name="name" value="{{ p.name if p }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label">الوصف</label>
+          <textarea class="form-control" rows="3" name="description">{{ p.description if p }}</textarea>
+        </div>
+        <div class="col-4">
+          <label class="form-label">السعر</label>
+          <input type="number" class="form-control" name="price" value="{{ p.price if p else 0 }}">
+        </div>
+        <div class="col-4">
+          <label class="form-label">العمولة</label>
+          <input type="number" class="form-control" name="commission" value="{{ p.commission if p else 0 }}">
+        </div>
+        <div class="col-4">
+          <label class="form-label">سعر التوصيل</label>
+          <input type="number" class="form-control" name="delivery_price" value="{{ p.delivery_price if p else 0 }}">
+        </div>
+
+        <div class="col-6">
+          <label class="form-label">التصنيف</label>
+          <select class="form-select" name="category_id">
+            <option value="">—</option>
+            {% for c in categories %}
+              <option value="{{ c.id }}" {% if p and p.category_id==c.id %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label">طريقة التوصيل</label>
+          <select class="form-select" name="delivery_mode">
+            <option value="home" {% if not p or p.delivery_mode=='home' %}selected{% endif %}>التوصيل للمنزل</option>
+            <option value="office" {% if p and p.delivery_mode=='office' %}selected{% endif %}>التوصيل للمكتب</option>
+          </select>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">ملاحظات الأدمن</label>
+          <textarea class="form-control" rows="2" name="notes">{{ p.notes if p }}</textarea>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">الصورة الرئيسية</label>
+          <input type="file" class="form-control" name="image" accept="image/*" {% if not p %}required{% endif %}>
+          {% if p %}
+            <div class="mt-2"><img src="{{ static_url(p.image_path) }}" height="80" class="rounded"></div>
+          {% endif %}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">صور إضافية (اختياري)</label>
+          <input type="file" class="form-control" name="images[]" accept="image/*" multiple>
+        </div>
+      </div>
+      <div class="card-footer bg-white d-flex gap-2">
+        <button class="btn btn-brand"><i class="fa-solid fa-floppy-disk me-1"></i> حفظ</button>
+        <a class="btn btn-outline-dark" href="{{ url_for('admin_products') }}">رجوع</a>
+      </div>
+    </div>
+  </div>
+</form>
+>>>>>>> c2e8f00253edd3dfd5428ed72cdeafdc5033522a
 {% endblock %}
