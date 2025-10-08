@@ -9,8 +9,6 @@ from werkzeug.utils import secure_filename
 import psycopg2
 import psycopg2.extras
 
-<<<<<<< HEAD
-# Cloudinary + .env
 import cloudinary
 import cloudinary.uploader
 from dotenv import load_dotenv
@@ -21,14 +19,6 @@ load_dotenv()
 APP_NAME = "Mostefaoui DZShop Affiliates"
 WITHDRAW_MIN = 5000.0         # حد السحب الأدنى
 WEEKLY_BONUS_AMOUNT = 1000.0  # علاوة كل 10 طلبيات مؤكدة خلال أسبوع
-=======
-import cloudinary
-import cloudinary.uploader
-
-APP_NAME = "Mostefaoui DZShop Affiliates"
-WITHDRAW_MIN = 5000.0  # DZD
-WEEKLY_BONUS_AMOUNT = 1000.0  # دج/لكل 10 طلبيات مؤكدة في الأسبوع
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'}
@@ -37,17 +27,10 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set.")
 
-<<<<<<< HEAD
-# Cloudinary (يستعمل من .env)، نفعّله صراحةً لضمان قراءة الـ api_key
+# Cloudinary (من .env)
 CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL", "").strip()
 USE_CLOUDINARY = bool(CLOUDINARY_URL)
 if USE_CLOUDINARY:
-    # هذه السطر يكفي لتهيئة المكتبة من CLOUDINARY_URL
-=======
-CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL", "").strip()
-USE_CLOUDINARY = bool(CLOUDINARY_URL)
-if USE_CLOUDINARY:
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     cloudinary.config(cloudinary_url=CLOUDINARY_URL)
 
 app = Flask(__name__)
@@ -60,15 +43,12 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
 
 def save_file(fs):
-<<<<<<< HEAD
     """رفع الصورة إلى Cloudinary إن وُجد، وإلا حفظ محلي."""
-=======
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     if not fs or not allowed_file(fs.filename):
         return None
+
     if USE_CLOUDINARY:
         result = cloudinary.uploader.upload(
-<<<<<<< HEAD
             fs,
             folder="dzshop/products",
             resource_type="image",
@@ -76,13 +56,8 @@ def save_file(fs):
             unique_filename=True
         )
         return result.get('secure_url')
+
     # Local fallback (للاستخدام المحلي فقط)
-=======
-            fs, folder="dzshop/products", resource_type="image",
-            use_filename=True, unique_filename=True
-        )
-        return result.get('secure_url')
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     filename = secure_filename(fs.filename)
     base, ext = os.path.splitext(filename)
     uniq = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
@@ -92,22 +67,15 @@ def save_file(fs):
     return path.replace("\\", "/")
 
 def make_dl_url(url_or_path):
-<<<<<<< HEAD
     """رابط تنزيل مباشر (Cloudinary يدعم fl_attachment)."""
-=======
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     if not url_or_path:
         return url_for('static', filename='img/placeholder.svg')
     s = url_or_path.strip()
     if s.startswith('http://') or s.startswith('https://'):
-<<<<<<< HEAD
         # Cloudinary: فعّل fl_attachment للتنزيل
         if '/upload/' in s and 'fl_attachment' not in s:
             return s.replace('/upload/', '/upload/fl_attachment/', 1)
         return s
-=======
-        return s.replace('/upload/', '/upload/fl_attachment/', 1) if '/upload/' in s else s
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     if s.startswith('static/'):
         return url_for('static', filename=s.split('static/', 1)[1])
     return s
@@ -124,11 +92,7 @@ def inject_helpers():
         return path
     return dict(static_url=static_url, dl_url=make_dl_url, app_name=APP_NAME)
 
-<<<<<<< HEAD
 # ---------------- DB ----------------
-=======
-# -------------- DB --------------
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
 def get_db():
     return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
 
@@ -140,12 +104,8 @@ def pg_exec(conn, sql, params=()):
 def init_db():
     conn = get_db()
     cur = conn.cursor()
-<<<<<<< HEAD
 
-    # users (phone + approved)
-=======
-    # users (phone)
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
+    # users
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users(
         id SERIAL PRIMARY KEY,
@@ -159,10 +119,7 @@ def init_db():
     );
     """)
     cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT;")
-<<<<<<< HEAD
     cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS approved INTEGER NOT NULL DEFAULT 0;")
-=======
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
 
     # categories
     cur.execute("""
@@ -172,11 +129,7 @@ def init_db():
     );
     """)
 
-<<<<<<< HEAD
-    # products (+ category_id, delivery_mode, notes)
-=======
-    # products (category_id, delivery_mode, notes)
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
+    # products
     cur.execute("""
     CREATE TABLE IF NOT EXISTS products(
         id SERIAL PRIMARY KEY,
@@ -197,11 +150,7 @@ def init_db():
     cur.execute("ALTER TABLE products ALTER COLUMN delivery_mode SET DEFAULT 'home';")
     cur.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS notes TEXT;")
 
-<<<<<<< HEAD
-    # product_images (صور إضافية)
-=======
     # product_images
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     cur.execute("""
     CREATE TABLE IF NOT EXISTS product_images(
         id SERIAL PRIMARY KEY,
@@ -225,11 +174,7 @@ def init_db():
     );
     """)
 
-<<<<<<< HEAD
     # withdrawals (+ bonus)
-=======
-    # withdrawals (+ bonus column)
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     cur.execute("""
     CREATE TABLE IF NOT EXISTS withdrawals(
         id SERIAL PRIMARY KEY,
@@ -244,11 +189,7 @@ def init_db():
     """)
     cur.execute("ALTER TABLE withdrawals ADD COLUMN IF NOT EXISTS bonus NUMERIC NOT NULL DEFAULT 0;")
 
-<<<<<<< HEAD
-    # pages (privacy/about/contact) قابلة للتحرير
-=======
-    # pages (static editable pages)
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
+    # pages (privacy/about/contact)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS pages(
         id SERIAL PRIMARY KEY,
@@ -263,11 +204,7 @@ def init_db():
             cur.execute("INSERT INTO pages(slug,title,content) VALUES(%s,%s,%s)",
                         (slug, title, f"{title} - محتوى افتراضي."))
 
-<<<<<<< HEAD
-    # bonuses (لتفادي صرف العلاوة أكثر من مرة/أسبوع)
-=======
-    # weekly bonus ledger (to avoid awarding bonus twice in same ISO week)
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
+    # bonuses (لمنع صرف العلاوة مرتين في نفس الأسبوع)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS bonuses(
         id SERIAL PRIMARY KEY,
@@ -292,11 +229,7 @@ def init_db():
                     ('Admin','admin@local', generate_password_hash(admin_pwd),'admin',1, datetime.now(timezone.utc).isoformat()))
         conn.commit()
 
-<<<<<<< HEAD
     # seed category + sample product
-=======
-    # seed category + product if empty
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     cur.execute("SELECT COUNT(*) AS n FROM products")
     if cur.fetchone()['n'] == 0:
         cur.execute("INSERT INTO categories(name) VALUES('عام') ON CONFLICT DO NOTHING;")
@@ -312,24 +245,15 @@ def init_db():
 
 init_db()
 
-<<<<<<< HEAD
 # ---------------- Auth utils ----------------
-=======
-# -------------- Auth helpers --------------
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
 def login_required(role=None):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-<<<<<<< HEAD
             if 'user_id' not in session:
                 return redirect(url_for('login'))
             if role and session.get('role') != role:
                 abort(403)
-=======
-            if 'user_id' not in session: return redirect(url_for('login'))
-            if role and session.get('role') != role: abort(403)
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
             return f(*args, **kwargs)
         return wrapper
     return decorator
@@ -341,7 +265,6 @@ def current_user():
     u = cur.fetchone(); cur.close(); conn.close()
     return u
 
-<<<<<<< HEAD
 # ---------------- Bonus helpers ----------------
 def get_current_iso_year_week():
     iso = datetime.now(timezone.utc).isocalendar()  # (year, week, weekday)
@@ -355,22 +278,6 @@ def calc_weekly_bonus_pending(affiliate_id):
     - لو مسجلة في bonuses هذا الأسبوع → 0.
     """
     conn = get_db()
-=======
-# -------- Bonus helpers --------
-def get_current_iso_year_week():
-    dt = datetime.now(timezone.utc).isocalendar()
-    return dt.year, dt.week
-
-def calc_weekly_bonus_pending(affiliate_id):
-    """
-    يحسب العلاوة المتاحة لهذا الأسبوع (غير المصروفة بعد):
-    - يحسب عدد الطلبات المؤكدة (delivered) لهذا الأسبوع.
-    - كل 10 = 1000 دج.
-    - إذا تم صرفها هذا الأسبوع (مسجلة في bonuses) → 0.
-    """
-    conn = get_db()
-    # بداية الأسبوع (الاثنين) بحساب ISO — نقرب بآخر 7 أيام من الآن (حل بسيط ومقبول)
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     since = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
     cur = pg_exec(conn, """
         SELECT COUNT(*) AS n
@@ -380,10 +287,6 @@ def calc_weekly_bonus_pending(affiliate_id):
     n = cur.fetchone()['n']
     bonus_candidate = (n // 10) * WEEKLY_BONUS_AMOUNT
 
-<<<<<<< HEAD
-=======
-    # هل صُرفت من قبل هذا الأسبوع؟
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     y, w = get_current_iso_year_week()
     cur2 = pg_exec(conn, "SELECT 1 FROM bonuses WHERE affiliate_id=%s AND iso_year=%s AND iso_week=%s",
                    (affiliate_id, y, w))
@@ -392,14 +295,7 @@ def calc_weekly_bonus_pending(affiliate_id):
     return 0.0 if already else float(bonus_candidate)
 
 def award_weekly_bonus_if_any(conn, affiliate_id, amount):
-<<<<<<< HEAD
     """يسجل العلاوة للأسبوع الحالي (إن وجدت) ويمنع صرفها مرة ثانية."""
-=======
-    """
-    يسجل العلاوة لهذا الأسبوع في جدول bonuses (لتفادي الصرف المكرر)
-    ويُرجع القيمة المصروفة فعلًا (0 أو amount).
-    """
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     if amount <= 0: return 0.0
     y, w = get_current_iso_year_week()
     try:
@@ -410,11 +306,7 @@ def award_weekly_bonus_if_any(conn, affiliate_id, amount):
     except psycopg2.Error:
         return 0.0
 
-<<<<<<< HEAD
 # ---------------- Auth routes ----------------
-=======
-# -------------- Auth routes --------------
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
 @app.route('/register', methods=['GET','POST'])
 def register():
     if request.method == 'POST':
@@ -459,45 +351,26 @@ def logout():
     session.clear(); flash('تم تسجيل الخروج','info')
     return redirect(url_for('login'))
 
-<<<<<<< HEAD
 # ---------------- Static pages ----------------
 @app.route('/privacy')
 def privacy():
     conn = get_db(); cur = pg_exec(conn,"SELECT * FROM pages WHERE slug='privacy'"); pg=cur.fetchone()
     cur.close(); conn.close()
-=======
-# -------------- Static pages --------------
-@app.route('/privacy')
-def privacy():
-    conn = get_db(); cur = pg_exec(conn,"SELECT * FROM pages WHERE slug='privacy'"); pg=cur.fetchone()
-    cur.close(); conn.close(); 
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     return render_template('page.html', page=pg)
 
 @app.route('/about')
 def about():
     conn = get_db(); cur = pg_exec(conn,"SELECT * FROM pages WHERE slug='about'"); pg=cur.fetchone()
-<<<<<<< HEAD
     cur.close(); conn.close()
-=======
-    cur.close(); conn.close(); 
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     return render_template('page.html', page=pg)
 
 @app.route('/contact')
 def contact():
     conn = get_db(); cur = pg_exec(conn,"SELECT * FROM pages WHERE slug='contact'"); pg=cur.fetchone()
-<<<<<<< HEAD
     cur.close(); conn.close()
     return render_template('page.html', page=pg)
 
 # ---------------- Affiliate ----------------
-=======
-    cur.close(); conn.close(); 
-    return render_template('page.html', page=pg)
-
-# -------------- Affiliate --------------
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
 @app.route('/')
 def home():
     if 'user_id' in session:
@@ -594,11 +467,8 @@ def calc_affiliate_balance(affiliate_id):
 @login_required(role='affiliate')
 def affiliate_commissions():
     bal=calc_affiliate_balance(session['user_id'])
-<<<<<<< HEAD
-    bonus_pending = calc_weekly_bonus_pending(session['user_id'])
-=======
-    bonus_pending = calc_weekly_bonus_pending(session['user_id'])  # ممكن يكون 0 لو صُرفت هذا الأسبوع
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
+    bonus_pending = calc_weekly_bonus_pending(session['user_id'])  # قد يكون 0 لو صُرفت هذا الأسبوع
+
     if request.method=='POST':
         method=request.form.get('method')
         details=request.form.get('details','').strip()
@@ -612,10 +482,7 @@ def affiliate_commissions():
         if amount<WITHDRAW_MIN and total_available>=WITHDRAW_MIN:
             flash(f'الحد الأدنى للسحب {WITHDRAW_MIN:.0f} دج','danger'); return redirect(url_for('affiliate_commissions'))
         conn=get_db()
-<<<<<<< HEAD
-=======
-        # صَرف العلاوة (إن وُجدت وغير مصروفة في هذا الأسبوع)
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
+        # صرف العلاوة إن وُجدت وغير مسجلة هذا الأسبوع
         awarded = award_weekly_bonus_if_any(conn, session['user_id'], bonus_pending)
         pg_exec(conn, """INSERT INTO withdrawals(affiliate_id,amount,method,details,status,bonus,created_at)
                          VALUES(%s,%s,%s,%s,%s,%s,%s)""",
@@ -642,11 +509,7 @@ def affiliate_settings():
         conn.commit(); conn.close(); flash('تم تغيير كلمة السر.','success'); return redirect(url_for('affiliate_settings'))
     return render_template('affiliate/settings.html')
 
-<<<<<<< HEAD
 # ---------------- Admin ----------------
-=======
-# -------------- Admin --------------
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
 def admin_required(f): return login_required(role='admin')(f)
 
 @app.route('/admin')
@@ -750,7 +613,6 @@ def admin_products_add():
     conn.commit(); conn.close()
     flash('تمت إضافة المنتج','success'); return redirect(url_for('admin_products'))
 
-<<<<<<< HEAD
 @app.route('/admin/products/new')
 @admin_required
 def admin_product_new():
@@ -810,8 +672,6 @@ def admin_product_edit(pid):
     conn.close()
     return render_template('admin/product_form.html', p=p, categories=cats)
 
-=======
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
 @app.route('/admin/products/<int:pid>/delete', methods=['POST'])
 @admin_required
 def admin_products_delete(pid):
@@ -862,22 +722,15 @@ def admin_settings():
             conn.commit(); flash('تم حفظ الإعدادات','success')
         else:
             flash('الإيميل مطلوب','danger')
-<<<<<<< HEAD
-    # عرض بيانات
-=======
+
     # البيانات للعرض
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
     cur=pg_exec(conn,"SELECT id,name,email,approved,phone,created_at FROM users WHERE role='affiliate' ORDER BY id DESC")
     affiliates=cur.fetchall()
     cur=pg_exec(conn,"SELECT id,name,email FROM users WHERE role='admin' LIMIT 1")
     admin_user=cur.fetchone()
     conn.close()
     return render_template('admin/settings.html', admin_user=admin_user, affiliates=affiliates)
-<<<<<<< HEAD
 
 # ---------------- Main ----------------
 if __name__ == "__main__":
-    # للتجربة محلياً
     app.run(debug=True)
-=======
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
