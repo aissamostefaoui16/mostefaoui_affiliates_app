@@ -1,5 +1,5 @@
 :root{
-<<<<<<< HEAD
+
   --brand:#f7a311;
 }
 body.bg-body{ background:#fafafa; }
@@ -59,8 +59,8 @@ body.bg-body{ background:#fafafa; }
 /* small tweaks */
 .card{ border-radius:14px; overflow:hidden; }
 img.rounded{ border-radius:10px; }
-=======
-  --brand:#6d28d9; /* violet-700 */
+
+  --brand:#6d28d9; 
   --brand-2:#22c55e;
   --bg:#f7f7fb;
   --muted:#6b7280;
@@ -86,4 +86,4 @@ a{text-decoration:none}
 .card, .product-card{border-radius:16px}
 .btn{border-radius:12px}
 img{border-radius:12px}
->>>>>>> 9c0541175af84b48b74762ecf9b1a517f8b30950
+
